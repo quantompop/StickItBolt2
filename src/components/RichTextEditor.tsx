@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
-import 'draft-js/dist/Draft.css';
+// Remove the problematic CSS import - we'll add inline styles instead
 import './RichTextEditor.css';
 import { Bold, Italic, Underline, Code } from 'lucide-react';
 

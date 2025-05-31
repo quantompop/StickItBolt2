@@ -13,35 +13,45 @@
   min-height: 50px;
 }
 
-.rich-text-editor .public-DraftEditor-content {
-  min-height: 50px;
+/* Styles for Draft.js since we're not importing the CSS directly */
+.DraftEditor-root {
+  position: relative;
 }
 
-.rich-text-editor .public-DraftEditorPlaceholder-root {
+.public-DraftEditor-content {
+  min-height: 50px;
+  padding: 4px 0;
+}
+
+.public-DraftEditorPlaceholder-root {
   color: #6b7280;
   position: absolute;
   pointer-events: none;
 }
 
+.public-DraftEditorPlaceholder-hasFocus {
+  color: #a0aec0;
+}
+
 /* Style for different inline styles */
-.rich-text-editor .public-DraftStyleDefault-block {
+.public-DraftStyleDefault-block {
   margin: 0.5em 0;
 }
 
 /* Custom styles for inline styling */
-.rich-text-editor .BOLD {
+.BOLD {
   font-weight: bold;
 }
 
-.rich-text-editor .ITALIC {
+.ITALIC {
   font-style: italic;
 }
 
-.rich-text-editor .UNDERLINE {
+.UNDERLINE {
   text-decoration: underline;
 }
 
-.rich-text-editor .CODE {
+.CODE {
   font-family: monospace;
   background-color: #f1f1f1;
   padding: 0 0.2em;
