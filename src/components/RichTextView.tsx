@@ -1,7 +1,5 @@
 import React from 'react';
 import { Editor, EditorState, convertFromRaw, ContentState } from 'draft-js';
-// Import styles locally
-import './RichTextEditor.css';
 
 interface RichTextViewProps {
   content: string;

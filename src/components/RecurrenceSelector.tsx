@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { RecurrencePattern } from '../types';
-import { Calendar, Calendar as Calendar1, CalendarDays, RotateCcw, X } from 'lucide-react';
 
 interface RecurrenceSelectorProps {
   value: RecurrencePattern | undefined;
@@ -100,7 +99,7 @@ const RecurrenceSelector: React.FC<RecurrenceSelectorProps> = ({ value, onChange
           className="text-gray-500 hover:text-gray-700"
           aria-label="Close"
         >
-          <X size={18} />
+          ✕
         </button>
       </div>
 
@@ -117,8 +116,7 @@ const RecurrenceSelector: React.FC<RecurrenceSelectorProps> = ({ value, onChange
               }`}
               onClick={() => handleFrequencyChange('daily')}
             >
-              <Calendar className="mx-auto h-4 w-4 mb-1" />
-              <span>Daily</span>
+              Daily
             </button>
             
             <button
@@ -129,8 +127,7 @@ const RecurrenceSelector: React.FC<RecurrenceSelectorProps> = ({ value, onChange
               }`}
               onClick={() => handleFrequencyChange('weekly')}
             >
-              <Calendar1 className="mx-auto h-4 w-4 mb-1" />
-              <span>Weekly</span>
+              Weekly
             </button>
             
             <button
@@ -141,8 +138,7 @@ const RecurrenceSelector: React.FC<RecurrenceSelectorProps> = ({ value, onChange
               }`}
               onClick={() => handleFrequencyChange('monthly')}
             >
-              <Calendar className="mx-auto h-4 w-4 mb-1" />
-              <span>Monthly</span>
+              Monthly
             </button>
             
             <button
@@ -153,8 +149,7 @@ const RecurrenceSelector: React.FC<RecurrenceSelectorProps> = ({ value, onChange
               }`}
               onClick={() => handleFrequencyChange('yearly')}
             >
-              <CalendarDays className="mx-auto h-4 w-4 mb-1" />
-              <span>Yearly</span>
+              Yearly
             </button>
           </div>
         </div>
@@ -293,7 +288,6 @@ const RecurrenceSelector: React.FC<RecurrenceSelectorProps> = ({ value, onChange
             onClick={handleClear}
             className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded flex items-center text-sm"
           >
-            <X size={14} className="mr-1" />
             No Recurrence
           </button>
           <button
@@ -301,7 +295,6 @@ const RecurrenceSelector: React.FC<RecurrenceSelectorProps> = ({ value, onChange
             onClick={handleSave}
             className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded flex items-center text-sm"
           >
-            <RotateCcw size={14} className="mr-1" />
             Set Recurrence
           </button>
         </div>

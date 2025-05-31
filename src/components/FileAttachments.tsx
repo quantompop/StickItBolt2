@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Paperclip, File, X, Download, Trash, Upload } from 'lucide-react';
-import { Attachment } from '../types';
 import { useBoard, ADD_ATTACHMENT, REMOVE_ATTACHMENT } from '../context/BoardContext';
+import { Attachment } from '../types';
 
 interface FileAttachmentsProps {
   noteId: string;
@@ -125,7 +124,7 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
               className="flex items-center p-2 bg-gray-50 rounded border border-gray-200"
             >
               <div className="mr-2">
-                <File size={16} className="text-gray-500" />
+                📎
               </div>
               <div className="flex-grow truncate">
                 <div className="text-sm font-medium truncate">{attachment.name}</div>
@@ -138,7 +137,7 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
                   aria-label="Open attachment"
                   title="Open"
                 >
-                  <Download size={16} />
+                  🔍
                 </button>
                 <button
                   className="p-1 text-gray-500 hover:text-red-600 rounded"
@@ -146,7 +145,7 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
                   aria-label="Remove attachment"
                   title="Remove"
                 >
-                  <Trash size={16} />
+                  🗑️
                 </button>
               </div>
             </div>
@@ -174,17 +173,7 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
           htmlFor={`file-upload-${noteId}`}
           className={`inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
-          {isUploading ? (
-            <>
-              <Upload size={16} className="mr-1 animate-spin" />
-              Uploading...
-            </>
-          ) : (
-            <>
-              <Paperclip size={16} className="mr-1" />
-              {attachments.length > 0 ? 'Add more files' : 'Attach files'}
-            </>
-          )}
+          {isUploading ? 'Uploading...' : (attachments.length > 0 ? 'Add more files' : 'Attach files')}
         </label>
         <p className="text-xs text-gray-500 mt-1">
           Max size: {formatFileSize(MAX_FILE_SIZE)} per file

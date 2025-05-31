@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { changePassword } from '../../firebase/authService';
-import { Lock, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface PasswordChangeProps {
   onClose: () => void;
@@ -68,21 +67,18 @@ const PasswordChange: React.FC<PasswordChangeProps> = ({ onClose }) => {
   return (
     <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
       <div className="text-center mb-6">
-        <Lock className="h-12 w-12 text-blue-500 mx-auto mb-2" />
         <h2 className="text-2xl font-bold text-gray-800">Change Password</h2>
         <p className="text-gray-600 mt-1">Update your account password</p>
       </div>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-start">
-          <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
           <span className="text-red-700 text-sm">{error}</span>
         </div>
       )}
       
       {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-start">
-          <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md">
           <span className="text-green-700 text-sm">Password changed successfully!</span>
         </div>
       )}
@@ -93,13 +89,10 @@ const PasswordChange: React.FC<PasswordChangeProps> = ({ onClose }) => {
             Current Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="h-5 w-5 text-gray-400" />
-            </div>
             <input
               id="currentPassword"
               type="password"
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your current password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
@@ -113,13 +106,10 @@ const PasswordChange: React.FC<PasswordChangeProps> = ({ onClose }) => {
             New Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="h-5 w-5 text-gray-400" />
-            </div>
             <input
               id="newPassword"
               type="password"
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter your new password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -133,13 +123,10 @@ const PasswordChange: React.FC<PasswordChangeProps> = ({ onClose }) => {
             Confirm New Password
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Lock className="h-5 w-5 text-gray-400" />
-            </div>
             <input
               id="confirmPassword"
               type="password"
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Confirm your new password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

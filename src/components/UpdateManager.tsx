@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Github, RefreshCw, AlertCircle, CheckCircle, X } from 'lucide-react';
 
 interface UpdateManagerProps {
   onClose: () => void;
@@ -82,7 +81,6 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
     <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
-          <Github className="h-6 w-6 text-blue-500 mr-2" />
           <h2 className="text-2xl font-bold text-gray-800">Update Source</h2>
         </div>
         <button
@@ -90,7 +88,7 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
           className="text-gray-400 hover:text-gray-600"
           aria-label="Close"
         >
-          <X size={20} />
+          X
         </button>
       </div>
       
@@ -104,14 +102,12 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
       
       {error && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-start">
-          <AlertCircle className="h-5 w-5 text-red-500 mr-2 flex-shrink-0 mt-0.5" />
           <span className="text-red-700 text-sm">{error}</span>
         </div>
       )}
       
       {success && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-start">
-          <CheckCircle className="h-5 w-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
           <span className="text-green-700 text-sm">
             Update repository set successfully! The app will now check for updates from this repository.
           </span>
@@ -124,13 +120,10 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
             GitHub Repository URL
           </label>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Github className="h-5 w-5 text-gray-400" />
-            </div>
             <input
               id="repoUrl"
               type="text"
-              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="https://github.com/username/repo"
               value={repoUrl}
               onChange={(e) => setRepoUrl(e.target.value)}
@@ -150,12 +143,7 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
             }`}
             disabled={isLoading}
           >
-            {isLoading ? (
-              <>
-                <RefreshCw className="inline-block mr-1 h-4 w-4 animate-spin" />
-                Setting...
-              </>
-            ) : 'Set Repository'}
+            {isLoading ? 'Setting...' : 'Set Repository'}
           </button>
           <button
             type="button"
@@ -184,7 +172,6 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
             }
           }}
         >
-          <RefreshCw className="mr-2 h-4 w-4" />
           Check for Updates Now
         </button>
       </div>

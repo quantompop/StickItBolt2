@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
-// Remove the problematic CSS import - we'll add inline styles instead
-import './RichTextEditor.css';
-import { Bold, Italic, Underline, Code } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
@@ -88,7 +85,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }`}
           aria-label="Bold"
         >
-          <Bold size={16} />
+          Bold
         </button>
         
         <button
@@ -101,7 +98,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }`}
           aria-label="Italic"
         >
-          <Italic size={16} />
+          Italic
         </button>
         
         <button
@@ -114,7 +111,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }`}
           aria-label="Underline"
         >
-          <Underline size={16} />
+          Underline
         </button>
         
         <button
@@ -127,7 +124,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           }`}
           aria-label="Code"
         >
-          <Code size={16} />
+          Code
         </button>
       </div>
       
