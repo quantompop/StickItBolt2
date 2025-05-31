@@ -3,7 +3,7 @@
  * This centralizes our electron-builder settings in a JavaScript file
  * which gives us more flexibility than YAML
  */
-module.exports = {
+export default {
   directories: {
     output: "dist-electron",
     buildResources: "build"
