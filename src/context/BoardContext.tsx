@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, ReactNode, useEffect, useCallback } from 'react';
 import { Note, Task, BoardState, ArchivedTask, VersionSnapshot, TaskPriority, RecurrencePattern, Attachment } from '../types';
 import { generateId } from '../utils/helpers';
 import { useAuth } from './AuthContext';
@@ -139,7 +139,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
       newState = {
         ...state,
         notes: [...(state.notes || []), newNote],
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -158,7 +159,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         notes: (state.notes || []).map(note => 
           note.id === id ? { ...note, title: updatedTitle } : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -174,7 +176,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
       newState = {
         ...state,
         notes: (state.notes || []).filter(note => note.id !== action.payload.id),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -191,7 +194,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         ...state,
         notes: (state.notes || []).map(note => 
           note.id === id ? { ...note, position } : note
-        )
+        ),
+        isSynced: false // Mark as not synced after change
       };
       
       // We don't create a version snapshot for move operations to avoid cluttering history
@@ -206,7 +210,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         notes: (state.notes || []).map(note => 
           note.id === id ? { ...note, color } : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -240,7 +245,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
             ? { ...note, tasks: [...(note.tasks || []), newTask] }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -266,7 +272,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -292,7 +299,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -319,7 +327,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -353,7 +362,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -386,7 +396,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -420,7 +431,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
                 }
               : note
           ),
-          undoStack: addToUndoStack(state, action)
+          undoStack: addToUndoStack(state, action),
+          isSynced: false // Mark as not synced after change
         };
         
         // Create a version snapshot
@@ -462,7 +474,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
                 }
               : note
           ),
-          undoStack: addToUndoStack(state, action)
+          undoStack: addToUndoStack(state, action),
+          isSynced: false // Mark as not synced after change
         };
       } else {
         // Normal non-recurring task completion
@@ -477,7 +490,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
                 }
               : note
           ),
-          undoStack: addToUndoStack(state, action)
+          undoStack: addToUndoStack(state, action),
+          isSynced: false // Mark as not synced after change
         };
       }
       
@@ -542,7 +556,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
           }
           return note;
         }),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -580,7 +595,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // We don't create a version snapshot for indent operations to avoid cluttering history
@@ -635,7 +651,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         notes: (state.notes || []).map(note => 
           note.id === noteId ? { ...note, tasks: newTasks } : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // We don't create a version snapshot for reorder operations to avoid cluttering history
@@ -650,7 +667,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         notes: (state.notes || []).map(note => 
           note.id === id ? { ...note, textSize: size } : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // We don't create a version snapshot for text size changes to avoid cluttering history
@@ -665,7 +683,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         notes: (state.notes || []).map(note => 
           note.id === id ? { ...note, taskSpacing: spacing } : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // We don't create a version snapshot for spacing changes to avoid cluttering history
@@ -685,7 +704,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -713,7 +733,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
               }
             : note
         ),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -730,7 +751,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
       newState = {
         ...state,
         archivedTasks: (state.archivedTasks || []).filter(task => task.id !== action.payload.taskId),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -776,7 +798,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
           ...state,
           notes: [...(state.notes || []), newNote],
           archivedTasks: (state.archivedTasks || []).filter(task => task.id !== taskId),
-          undoStack: addToUndoStack(state, action)
+          undoStack: addToUndoStack(state, action),
+          isSynced: false // Mark as not synced after change
         };
         
         // Create a version snapshot
@@ -807,7 +830,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
             : note
         ),
         archivedTasks: (state.archivedTasks || []).filter(task => task.id !== taskId),
-        undoStack: addToUndoStack(state, action)
+        undoStack: addToUndoStack(state, action),
+        isSynced: false // Mark as not synced after change
       };
       
       // Create a version snapshot
@@ -874,7 +898,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         ...versionToRestore.data,
         versionHistory: [...(state.versionHistory || []), preRestoreSnapshot],
         undoStack: state.undoStack || [],
-        boardId: state.boardId
+        boardId: state.boardId,
+        isSynced: false // Mark as not synced after restoration
       };
     }
     
@@ -902,7 +927,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         return {
           ...state,
           undoStack: state.undoStack.slice(1),
-          versionHistory: [...(state.versionHistory || []), preUndoSnapshot]
+          versionHistory: [...(state.versionHistory || []), preUndoSnapshot],
+          isSynced: false // Mark as not synced after undo
         };
       }
       
@@ -912,7 +938,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         versionHistory: [...(state.versionHistory || []), preUndoSnapshot],
         undoStack: state.undoStack.slice(1),
         boardId: state.boardId,
-        userId: state.userId
+        userId: state.userId,
+        isSynced: false // Mark as not synced after undo
       };
     }
     
@@ -1071,16 +1098,22 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [state, dispatch] = useReducer(boardReducer, loadState());
   const { state: authState } = useAuth();
   const syncTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const [syncQueue, setSyncQueue] = React.useState<boolean>(false);
   
   // Manual sync function
   const syncNow = async () => {
     if (!authState.isAuthenticated || !authState.user || !state.boardId) {
       console.warn('Cannot sync: Not authenticated or missing boardId');
-      return;
+      throw new Error('You must be signed in to sync data');
+    }
+    
+    if (!navigator.onLine) {
+      console.warn('Cannot sync: Device is offline');
+      throw new Error("You're offline. Please check your internet connection and try again.");
     }
     
     try {
-      console.log('Manually syncing board to Firebase...');
+      console.log('Manually syncing board to Firebase...', new Date().toLocaleTimeString());
       await saveBoardState(authState.user.id, state);
       
       // Update sync status
@@ -1088,7 +1121,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         type: SYNC_BOARD
       });
       
-      console.log('Sync completed successfully!');
+      console.log('Sync completed successfully!', new Date().toLocaleTimeString());
     } catch (error) {
       console.error('Error during manual sync:', error);
       throw error;
@@ -1096,14 +1129,19 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   };
   
   // Manual load from server function
-  const loadFromServer = async () => {
+  const loadFromServer = useCallback(async () => {
     if (!authState.isAuthenticated || !authState.user || !state.boardId) {
       console.warn('Cannot load from server: Not authenticated or missing boardId');
-      return;
+      throw new Error('You must be signed in to load data from the cloud');
+    }
+    
+    if (!navigator.onLine) {
+      console.warn('Cannot load from server: Device is offline');
+      throw new Error("You're offline. Please check your internet connection and try again.");
     }
     
     try {
-      console.log('Manually loading board from Firebase...');
+      console.log('Manually loading board from Firebase...', new Date().toLocaleTimeString());
       const boardData = await getBoardState(state.boardId);
       
       if (boardData) {
@@ -1112,26 +1150,52 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           type: LOAD_BOARD,
           payload: boardData
         });
-        console.log('Board loaded successfully from server!');
+        console.log('Board loaded successfully from server!', new Date().toLocaleTimeString());
       } else {
         console.warn('No board data found on server.');
+        throw new Error('No data found on the server. Try pushing your local data first.');
       }
     } catch (error) {
       console.error('Error loading from server:', error);
       throw error;
     }
-  };
+  }, [authState.isAuthenticated, authState.user, state.boardId]);
   
   // Sync with Firebase when user is authenticated and changes occur
+  useEffect(() => {
+    const handleOnline = () => {
+      if (syncQueue) {
+        console.log('Back online, processing sync queue...');
+        if (authState.isAuthenticated && authState.user && state.boardId) {
+          syncNow().catch(err => console.error('Error processing sync queue:', err));
+        }
+        setSyncQueue(false);
+      }
+    };
+    
+    window.addEventListener('online', handleOnline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [syncQueue, authState.isAuthenticated, authState.user, state.boardId]);
+  
+  // Set up automatic sync with debounce
   useEffect(() => {
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
     
     const syncWithFirebase = async () => {
-      if (authState.isAuthenticated && authState.user && state.boardId) {
+      if (!navigator.onLine) {
+        console.log('Device is offline, queueing sync for when online');
+        setSyncQueue(true);
+        return;
+      }
+      
+      if (authState.isAuthenticated && authState.user && state.boardId && !state.isSynced) {
         try {
-          console.log('Syncing with Firebase...', new Date().toLocaleTimeString());
+          console.log('Auto-syncing with Firebase...', new Date().toLocaleTimeString());
           
           // Save state to Firebase
           await saveBoardState(authState.user.id, state);
@@ -1141,24 +1205,29 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             type: SYNC_BOARD
           });
           
-          console.log('Sync completed!', new Date().toLocaleTimeString());
+          console.log('Auto-sync completed!', new Date().toLocaleTimeString());
         } catch (error) {
           console.error('Error syncing with Firebase:', error);
+          
+          // Queue for retry when back online if it was a network error
+          if (!navigator.onLine) {
+            setSyncQueue(true);
+          }
         }
       }
     };
     
-    // Debounce syncing to avoid too many writes
+    // Debounce syncing to avoid too many writes - 5 seconds is more responsive
     syncTimeoutRef.current = setTimeout(() => {
       syncWithFirebase();
-    }, 2000);
+    }, 5000);
     
     return () => {
       if (syncTimeoutRef.current) {
         clearTimeout(syncTimeoutRef.current);
       }
     };
-  }, [state.notes, state.archivedTasks, authState.isAuthenticated, authState.user]);
+  }, [state, authState.isAuthenticated, authState.user]);
   
   // Load board from Firebase when user logs in
   useEffect(() => {
@@ -1235,7 +1304,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         significantChanges.includes(state.undoStack[0].type)) {
       createAutomaticBackup();
     }
-  }, [state.undoStack, authState.isAuthenticated, authState.user]);
+  }, [state.undoStack, authState.isAuthenticated, authState.user, state.boardId]);
   
   return (
     <BoardContext.Provider value={{ state, dispatch, syncNow, loadFromServer }}>
