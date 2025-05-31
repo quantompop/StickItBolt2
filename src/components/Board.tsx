@@ -29,6 +29,8 @@ const Board: React.FC = () => {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showUpdateManager, setShowUpdateManager] = useState(false);
   const [showSyncPanel, setShowSyncPanel] = useState(false);
+  const [versionDescription, setVersionDescription] = useState('');
+  const [showVersionDialog, setShowVersionDialog] = useState(false);
   
   // Initialize the state to ensure it has expected properties
   useEffect(() => {
@@ -151,12 +153,19 @@ const Board: React.FC = () => {
   
   // Create manual version snapshot
   const createVersionSnapshot = () => {
-    const description = prompt("Enter a description for this version:");
-    if (description) {
+    // Replace prompt with custom dialog
+    setShowVersionDialog(true);
+  };
+  
+  // Handle version description save
+  const handleSaveVersion = () => {
+    if (versionDescription.trim()) {
       dispatch({
         type: SAVE_VERSION,
-        payload: { description }
+        payload: { description: versionDescription }
       });
+      setShowVersionDialog(false);
+      setVersionDescription('');
       alert("Version saved successfully!");
     }
   };
@@ -186,7 +195,8 @@ const Board: React.FC = () => {
     
     try {
       setIsCreatingBackup(true);
-      const description = prompt("Enter a description for this backup:") || "Manual backup";
+      // Use dialog instead of prompt
+      const description = window.prompt("Enter a description for this backup:") || "Manual backup";
       
       // Create a backup copy of the current board state
       await createBackup(authState.user.id, state.boardId, {
@@ -221,7 +231,7 @@ const Board: React.FC = () => {
   
   // Handle signing out
   const handleSignOut = async () => {
-    if (confirm("Are you sure you want to sign out?")) {
+    if (window.confirm("Are you sure you want to sign out?")) {
       try {
         await signOut();
       } catch (error) {
@@ -701,6 +711,41 @@ const Board: React.FC = () => {
         )}
       </div>
 
+      {/* Version Description Dialog */}
+      {showVersionDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h3 className="text-lg font-medium mb-4">Save Version</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Enter a description:
+              </label>
+              <input 
+                type="text" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={versionDescription}
+                onChange={(e) => setVersionDescription(e.target.value)}
+                autoFocus
+              />
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                className="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded"
+                onClick={() => setShowVersionDialog(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded"
+                onClick={handleSaveVersion}
+              >
+                Save Version
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Password Change Modal */}
       <AuthModal 
         isOpen={showPasswordModal} 
@@ -710,7 +755,7 @@ const Board: React.FC = () => {
 
       {/* Update Manager Modal */}
       {showUpdateManager && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\" role="dialog\" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true">
           <div className="relative">
             <UpdateManager onClose={() => setShowUpdateManager(false)} />
           </div>

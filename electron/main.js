@@ -1,6 +1,11 @@
 const { app, BrowserWindow, clipboard, globalShortcut, ipcMain, Menu, shell, dialog } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
+const fs = require('fs');
+const Store = require('electron-store');
+
+// Initialize electron-store for app config
+const store = new Store();
 
 let mainWindow;
 
@@ -104,6 +109,13 @@ function createWindow() {
             await shell.openExternal('https://github.com/quantompop/StickItBolt');
           },
         },
+        { type: 'separator' },
+        {
+          label: 'Check for Updates',
+          click: () => {
+            checkForUpdates();
+          }
+        },
       ],
     },
   ];
@@ -133,6 +145,90 @@ ipcMain.handle('get-clipboard-text', () => {
   return clipboard.readText();
 });
 
+// Custom update repository setting
+ipcMain.handle('set-update-repository', async (event, repoUrl) => {
+  try {
+    // Save the custom repository URL
+    const cleanRepoUrl = repoUrl.trim().replace(/\.git$/, '');
+    
+    // Extract owner and repo name from the URL
+    const urlParts = cleanRepoUrl.split('/');
+    const owner = urlParts[urlParts.length - 2];
+    const repo = urlParts[urlParts.length - 1];
+    
+    // Save settings to electron-store
+    store.set('updates.customRepository', cleanRepoUrl);
+    store.set('updates.owner', owner);
+    store.set('updates.repo', repo);
+    
+    console.log(`Update repository set to: ${cleanRepoUrl} (${owner}/${repo})`);
+    
+    // Configure the auto-updater to use the custom repo
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: owner,
+      repo: repo
+    });
+    
+    return true;
+  } catch (error) {
+    console.error('Error setting update repository:', error);
+    throw error;
+  }
+});
+
+// Get the current update repository
+ipcMain.handle('get-update-repository', () => {
+  return {
+    repoUrl: store.get('updates.customRepository'),
+    owner: store.get('updates.owner'),
+    repo: store.get('updates.repo')
+  };
+});
+
+// Manually check for updates
+ipcMain.handle('check-for-updates', async () => {
+  try {
+    await checkForUpdates();
+    return true;
+  } catch (error) {
+    console.error('Error checking for updates:', error);
+    throw error;
+  }
+});
+
+function checkForUpdates() {
+  if (process.env.ELECTRON_DEV === 'true') {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Updates',
+      message: 'Updates are disabled in development mode.'
+    });
+    return false;
+  }
+
+  const customRepo = store.get('updates.customRepository');
+  
+  if (customRepo) {
+    const owner = store.get('updates.owner');
+    const repo = store.get('updates.repo');
+    
+    // Set feed URL with custom repository
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: owner,
+      repo: repo
+    });
+    
+    console.log(`Checking for updates from custom repository: ${owner}/${repo}`);
+  } else {
+    console.log('Using default update repository');
+  }
+
+  autoUpdater.checkForUpdates();
+  return true;
+}
+
 // Auto-updater setup
 function setupAutoUpdater() {
   // Only use auto-updater in packaged app
@@ -145,6 +241,22 @@ function setupAutoUpdater() {
   autoUpdater.logger = console;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+
+  // Check if a custom repository has been set
+  const customRepo = store.get('updates.customRepository');
+  if (customRepo) {
+    const owner = store.get('updates.owner');
+    const repo = store.get('updates.repo');
+    
+    // Configure updater with custom repository
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: owner,
+      repo: repo
+    });
+    
+    console.log(`Using custom update repository: ${owner}/${repo}`);
+  }
 
   // Check for updates when app starts
   autoUpdater.checkForUpdatesAndNotify();
@@ -168,10 +280,21 @@ function setupAutoUpdater() {
 
   autoUpdater.on('update-not-available', (info) => {
     console.log('Update not available:', info);
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'No Updates',
+      message: 'You are running the latest version of StickIt!'
+    });
   });
 
   autoUpdater.on('error', (err) => {
     console.error('Error in auto-updater:', err);
+    dialog.showMessageBox(mainWindow, {
+      type: 'error',
+      title: 'Update Error',
+      message: 'An error occurred while checking for updates.',
+      detail: err.toString()
+    });
   });
 
   autoUpdater.on('download-progress', (progressObj) => {
