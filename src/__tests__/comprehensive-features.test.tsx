@@ -2,13 +2,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BoardState } from '../types';
+import { BoardState, Task } from '../types';
+
+// Create direct mocks for BoardContext exports
+const ADD_NOTE = 'ADD_NOTE';
+const SAVE_VERSION = 'SAVE_VERSION';
+const SET_SEARCH = 'SET_SEARCH';
+const TOGGLE_TASK = 'TOGGLE_TASK';
+const SET_TASK_PRIORITY = 'SET_TASK_PRIORITY';
 
 // Mock the required components with interactive elements
 vi.mock('../components/SliderControl', () => ({
   default: ({ value, onChange }) => (
     <div>
-      Slider Control: {value}
+      <div data-testid="slider-value">Slider Control: {value}</div>
       <button data-testid="increase-button" onClick={() => onChange(value + 1)}>Increase</button>
       <button data-testid="decrease-button" onClick={() => onChange(value - 1)}>Decrease</button>
     </div>
@@ -18,7 +25,7 @@ vi.mock('../components/SliderControl', () => ({
 vi.mock('../components/Task', () => ({
   default: ({ task }) => (
     <div className="task-item">
-      {task.text}
+      <div data-testid="task-text">{task.text}</div>
       <div className="context-menu" data-testid="task-context-menu">
         <div data-testid="mark-complete" onClick={() => {}}>Mark complete</div>
         <div data-testid="edit-task" onClick={() => {}}>Edit task</div>
@@ -32,7 +39,7 @@ vi.mock('../components/Task', () => ({
 vi.mock('../components/Note', () => ({
   default: ({ note }) => (
     <div>
-      <div className="note-header">{note.title}</div>
+      <div className="note-header" data-testid="note-header">{note.title}</div>
       <button aria-label="More options" data-testid="note-options">More options</button>
       <div data-testid="text-size-option">Text size</div>
       {note.tasks?.map(task => (
@@ -49,7 +56,7 @@ vi.mock('../components/Board', () => ({
       <button data-testid="archive-button">Archive</button>
       <button data-testid="search-button">Search</button>
       <button data-testid="history-button">History</button>
-      <div>Mock Board Content</div>
+      <div data-testid="board-content">Mock Board Content</div>
     </div>
   )
 }));
@@ -94,7 +101,12 @@ vi.mock('../context/BoardContext', () => {
       state: createInitialState(),
       dispatch: mockDispatch
     })),
-    BoardProvider: ({ children }) => <>{children}</>
+    BoardProvider: ({ children }) => <>{children}</>,
+    ADD_NOTE: 'ADD_NOTE',
+    TOGGLE_TASK: 'TOGGLE_TASK',
+    SET_TASK_PRIORITY: 'SET_TASK_PRIORITY',
+    SET_SEARCH: 'SET_SEARCH',
+    SAVE_VERSION: 'SAVE_VERSION'
   };
 });
 
@@ -202,11 +214,11 @@ describe('Comprehensive Feature Tests', () => {
       
       const TestContextMenu = () => (
         <div>
-          <div>{testTask.text}</div>
+          <div data-testid="task-text">{testTask.text}</div>
           <button 
             data-testid="toggle-task"
             onClick={() => mockDispatch({
-              type: 'TOGGLE_TASK',
+              type: TOGGLE_TASK,
               payload: { noteId: 'note-1', taskId: testTask.id }
             })}
           >
@@ -215,7 +227,7 @@ describe('Comprehensive Feature Tests', () => {
           <button 
             data-testid="set-priority"
             onClick={() => mockDispatch({
-              type: 'SET_TASK_PRIORITY',
+              type: SET_TASK_PRIORITY,
               payload: { 
                 noteId: 'note-1', 
                 taskId: testTask.id,
@@ -238,7 +250,7 @@ describe('Comprehensive Feature Tests', () => {
       // Dispatch should be called with toggle task action
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'TOGGLE_TASK',
+          type: TOGGLE_TASK,
           payload: expect.objectContaining({
             noteId: 'note-1',
             taskId: testTask.id
@@ -257,7 +269,7 @@ describe('Comprehensive Feature Tests', () => {
       // Dispatch should be called with set priority action
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'SET_TASK_PRIORITY',
+          type: SET_TASK_PRIORITY,
           payload: expect.objectContaining({
             noteId: 'note-1',
             taskId: testTask.id,
@@ -275,7 +287,7 @@ describe('Comprehensive Feature Tests', () => {
           <button 
             data-testid="add-note"
             onClick={() => mockDispatch({
-              type: 'ADD_NOTE',
+              type: ADD_NOTE,
               payload: { color: 'yellow', position: { x: 100, y: 100 } }
             })}
           >
@@ -285,7 +297,7 @@ describe('Comprehensive Feature Tests', () => {
           <button
             data-testid="save-version"
             onClick={() => mockDispatch({
-              type: 'SAVE_VERSION',
+              type: SAVE_VERSION,
               payload: { description: 'Test Version' }
             })}
           >
@@ -295,7 +307,7 @@ describe('Comprehensive Feature Tests', () => {
           <button
             data-testid="toggle-search"
             onClick={() => mockDispatch({
-              type: 'SET_SEARCH',
+              type: SET_SEARCH,
               payload: { term: 'test', scope: 'global' }
             })}
           >
@@ -314,7 +326,7 @@ describe('Comprehensive Feature Tests', () => {
       // Dispatch should be called with ADD_NOTE action
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'ADD_NOTE'
+          type: ADD_NOTE
         })
       );
       
@@ -329,7 +341,7 @@ describe('Comprehensive Feature Tests', () => {
       // Dispatch should be called with SAVE_VERSION action
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'SAVE_VERSION',
+          type: SAVE_VERSION,
           payload: expect.objectContaining({
             description: 'Test Version'
           })
@@ -347,7 +359,7 @@ describe('Comprehensive Feature Tests', () => {
       // Dispatch should be called with SET_SEARCH action
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'SET_SEARCH',
+          type: SET_SEARCH,
           payload: expect.objectContaining({
             term: 'test',
             scope: 'global'
