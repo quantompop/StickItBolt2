@@ -12,6 +12,13 @@ export default defineConfig({
       target: 'es2020',
     }
   },
+  resolve: {
+    alias: {
+      // Fix Draft.js imports
+      'draft-js': resolve(__dirname, 'node_modules/draft-js'),
+      'react-draft-wysiwyg': resolve(__dirname, 'node_modules/react-draft-wysiwyg')
+    }
+  },
   build: {
     outDir: 'dist',
     emptyOutDir: true,
@@ -49,8 +56,7 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[hash].[ext]',
         chunkFileNames: 'assets/[name].[hash].js',
         entryFileNames: 'assets/[name].[hash].js'
-      },
-      external: []
+      }
     },
     assetsInlineLimit: 4096, // Inline small assets (4kb or less)
   },
