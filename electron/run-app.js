@@ -59,6 +59,12 @@ function startElectron() {
       env: { ...process.env, ELECTRON_DEV: 'true', ELECTRON_ENABLE_LOGGING: '1' }
     });
     
+    electron.on('error', (error) => {
+      console.error('Failed to start Electron:', error);
+      vite.kill();
+      process.exit(1);
+    });
+    
     electron.on('close', (code) => {
       vite.kill();
       process.exit(code || 0);
