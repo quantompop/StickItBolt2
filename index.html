@@ -6,7 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StickIt Electron App</title>
     <base href="./">
-    <script>window.global = window;</script>
+    <script>
+      // Fix for Draft.js which requires the global object
+      window.global = window;
+      // Fix for common polyfills
+      global.process = { env: { NODE_ENV: 'production' } };
+    </script>
   </head>
   <body>
     <div id="root"></div>
