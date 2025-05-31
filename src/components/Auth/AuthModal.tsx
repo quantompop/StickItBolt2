@@ -1,24 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import Login from './Login';
 import Register from './Register';
+import PasswordChange from './PasswordChange';
 import { X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  initialMode?: 'login' | 'register' | 'password';
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
-  const [isLogin, setIsLogin] = useState(true);
+const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
+  const [mode, setMode] = useState(initialMode);
   const { state } = useAuth();
   
   // Close the modal when user is authenticated
   useEffect(() => {
-    if (state.isAuthenticated) {
+    if (state.isAuthenticated && mode !== 'password') {
       onClose();
     }
-  }, [state.isAuthenticated, onClose]);
+  }, [state.isAuthenticated, onClose, mode]);
   
   if (!isOpen) return null;
   
@@ -33,10 +35,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <X size={24} />
         </button>
         
-        {isLogin ? (
-          <Login onSwitch={() => setIsLogin(false)} />
-        ) : (
-          <Register onSwitch={() => setIsLogin(true)} />
+        {mode === 'login' && (
+          <Login 
+            onSwitch={() => setMode('register')} 
+            onPasswordReset={() => setMode('password')}
+          />
+        )}
+        
+        {mode === 'register' && (
+          <Register onSwitch={() => setMode('login')} />
+        )}
+        
+        {mode === 'password' && (
+          <PasswordChange onClose={onClose} />
         )}
       </div>
     </div>

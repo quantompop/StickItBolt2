@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash, Download, Archive, Search, X, History, Undo, Database, LogOut } from 'lucide-react';
+import { Plus, Trash, Download, Archive, Search, X, History, Undo, Database, LogOut, Key } from 'lucide-react';
 import Note from './Note';
 import ArchivedTasksList from './ArchivedTasksList';
 import VersionHistory from './VersionHistory';
@@ -9,6 +9,7 @@ import { createBackup } from '../firebase/backup';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from '../firebase/authService';
 import { NoteColor } from '../types';
+import AuthModal from './Auth/AuthModal';
 
 const Board: React.FC = () => {
   const { state, dispatch } = useBoard();
@@ -20,6 +21,7 @@ const Board: React.FC = () => {
   const [globalSearchTerm, setGlobalSearchTerm] = useState('');
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   
   // Initialize the state to ensure it has expected properties
   useEffect(() => {
@@ -196,6 +198,11 @@ const Board: React.FC = () => {
         alert("Failed to sign out. Please try again.");
       }
     }
+  };
+
+  // Open change password modal
+  const handleChangePassword = () => {
+    setShowPasswordModal(true);
   };
   
   // Handle task drop directly on the board background
@@ -419,16 +426,29 @@ const Board: React.FC = () => {
             </button>
           </div>
           
-          {/* Log Out Button */}
+          {/* User Account Actions */}
           {authState.isAuthenticated && (
-            <button 
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded flex items-center transition-colors"
-              onClick={handleSignOut}
-              aria-label="Sign out of your account"
-            >
-              <LogOut size={18} />
-              <span className="ml-1">Sign Out</span>
-            </button>
+            <>
+              {/* Change Password Button */}
+              <button 
+                className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded flex items-center transition-colors"
+                onClick={handleChangePassword}
+                aria-label="Change password"
+              >
+                <Key size={18} />
+                <span className="ml-1">Password</span>
+              </button>
+              
+              {/* Log Out Button */}
+              <button 
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded flex items-center transition-colors"
+                onClick={handleSignOut}
+                aria-label="Sign out of your account"
+              >
+                <LogOut size={18} />
+                <span className="ml-1">Sign Out</span>
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -602,6 +622,13 @@ const Board: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Password Change Modal */}
+      <AuthModal 
+        isOpen={showPasswordModal} 
+        onClose={() => setShowPasswordModal(false)}
+        initialMode="password" 
+      />
     </div>
   );
 };

@@ -4,9 +4,10 @@ import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 
 interface LoginProps {
   onSwitch: () => void;
+  onPasswordReset: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onSwitch }) => {
+const Login: React.FC<LoginProps> = ({ onSwitch, onPasswordReset }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -78,7 +79,7 @@ const Login: React.FC<LoginProps> = ({ onSwitch }) => {
             <button
               type="button"
               className="text-sm text-blue-600 hover:text-blue-800"
-              onClick={() => alert("Password reset functionality would be implemented here")}
+              onClick={onPasswordReset}
             >
               Forgot password?
             </button>

@@ -5,7 +5,10 @@ import {
   sendPasswordResetEmail,
   updateProfile,
   User,
-  onAuthStateChanged
+  onAuthStateChanged,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth';
 import { auth } from './config';
 
@@ -47,6 +50,26 @@ export const signOut = async () => {
 export const resetPassword = async (email: string) => {
   try {
     await sendPasswordResetEmail(auth, email);
+    return true;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Change password (requires reauthentication)
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+  try {
+    const user = auth.currentUser;
+    if (!user || !user.email) {
+      throw new Error("User not logged in or email not available");
+    }
+    
+    // Reauthenticate the user first
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    
+    // Then update the password
+    await updatePassword(user, newPassword);
     return true;
   } catch (error) {
     throw error;
