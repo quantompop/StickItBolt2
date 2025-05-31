@@ -4,6 +4,11 @@
   "version": "0.1.0",
   "type": "module",
   "main": "dist-electron/main.js",
+  "description": "Cross-platform sticky notes application",
+  "author": {
+    "name": "StickIt Developer",
+    "email": "dev@stickit-app.com"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

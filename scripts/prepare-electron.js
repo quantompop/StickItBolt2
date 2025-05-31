@@ -34,7 +34,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    icon: path.join(__dirname, '../public/icons/icon.png'),
+    icon: path.join(__dirname, '../dist/icons/icon.ico'),
   });
 
   // Check if running in development mode
@@ -280,16 +280,31 @@ fs.writeFileSync(path.join(distElectronDir, 'preload.js'), preloadJsContent);
 
 console.log('✅ Electron files prepared successfully for packaging');
 
-// Copy icon files if needed
-const iconSrc = path.join(projectRoot, 'public', 'icons', 'icon.ico');
-const iconDest = path.join(projectRoot, 'dist', 'icons', 'icon.ico');
+// Copy icon files
+console.log('📝 Copying icon files...');
 
-if (fs.existsSync(iconSrc)) {
-  // Make sure the destination directory exists
-  const iconDestDir = path.dirname(iconDest);
-  if (!fs.existsSync(iconDestDir)) {
-    fs.mkdirSync(iconDestDir, { recursive: true });
-  }
-  fs.copyFileSync(iconSrc, iconDest);
-  console.log('✅ Copied icon file for packaging');
+// Ensure the destination directory exists
+const iconsDir = path.join(projectRoot, 'dist', 'icons');
+if (!fs.existsSync(iconsDir)) {
+  fs.mkdirSync(iconsDir, { recursive: true });
 }
+
+// Copy icon files
+const iconFiles = [
+  { src: 'public/icons/icon.ico', dest: 'dist/icons/icon.ico' },
+  { src: 'public/icons/icon.png', dest: 'dist/icons/icon.png' }
+];
+
+for (const icon of iconFiles) {
+  const srcPath = path.join(projectRoot, icon.src);
+  const destPath = path.join(projectRoot, icon.dest);
+  
+  if (fs.existsSync(srcPath)) {
+    fs.copyFileSync(srcPath, destPath);
+    console.log(`✅ Copied ${icon.src} to ${icon.dest}`);
+  } else {
+    console.warn(`⚠️ Icon file ${icon.src} not found`);
+  }
+}
+
+console.log('✅ All preparations completed successfully!');

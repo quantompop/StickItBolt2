@@ -3,7 +3,7 @@
  * This centralizes our electron-builder settings in a JavaScript file
  * which gives us more flexibility than YAML
  */
-export default {
+module.exports = {
   directories: {
     output: "dist-electron",
     buildResources: "build"
@@ -62,4 +62,4 @@ export default {
   asarUnpack: [
     "**/*.{node,dll,exe}"
   ]
-}
+};
