@@ -24,6 +24,12 @@ module.exports = {
   extraMetadata: {
     main: "dist-electron/main.js"
   },
+  extraResources: [
+    {
+      "from": "node_modules/electron-store",
+      "to": "node_modules/electron-store"
+    }
+  ],
   mac: {
     category: "public.app-category.productivity",
     hardenedRuntime: true,
@@ -62,6 +68,7 @@ module.exports = {
   },
   asar: true,
   asarUnpack: [
-    "**/*.{node,dll,exe}"
+    "**/*.{node,dll,exe}",
+    "node_modules/electron-store/**/*"
   ]
 };
