@@ -19,8 +19,8 @@ if (fs.existsSync(electronPath)) {
 }
 
 console.log('Installing Electron...');
-// Run npm install electron without the --force flag
-const install = spawn('npm', ['install', 'electron@30.0.3', '--save-dev'], {
+// Install electron with the force flag as it's needed for proper installation in this environment
+const install = spawn('npm', ['install', 'electron@30.0.3', '--save-dev', '--force'], {
   stdio: 'inherit',
   shell: true
 });
@@ -58,6 +58,7 @@ function startElectron() {
   // Give vite some time to start
   setTimeout(() => {
     console.log('Starting Electron...');
+    // Use npx to ensure we use the local electron installation
     const electron = spawn('npx', ['electron', '.'], {
       stdio: 'inherit',
       shell: true,

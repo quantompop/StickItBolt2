@@ -10,7 +10,6 @@ import BackupList from './BackupList';
 import { useBoard, ADD_NOTE, SET_SEARCH, CLEAR_SEARCH, SAVE_VERSION, UNDO } from '../context/BoardContext';
 import { createBackup } from '../firebase/backup';
 import { useAuth } from '../context/AuthContext';
-import { signOut } from '../firebase/authService';
 import { NoteColor } from '../types';
 import AuthModal from './Auth/AuthModal';
 import UpdateManager from './UpdateManager';
@@ -195,8 +194,46 @@ const Board: React.FC = () => {
     
     try {
       setIsCreatingBackup(true);
-      // Use dialog instead of prompt
-      const description = window.prompt("Enter a description for this backup:") || "Manual backup";
+      // Use custom dialog instead of using the direct window.prompt API which can cause issues
+      const customDialog = document.createElement('div');
+      customDialog.innerHTML = `
+        <div class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div class="bg-white p-4 rounded-lg max-w-md w-full">
+            <h3 class="font-medium mb-2">Create Backup</h3>
+            <input type="text" id="backup-description" placeholder="Backup description" 
+                   class="w-full border border-gray-300 p-2 mb-3 rounded" value="Manual backup">
+            <div class="flex justify-end">
+              <button id="cancel-backup" class="px-3 py-1 mr-2 bg-gray-200 rounded">Cancel</button>
+              <button id="confirm-backup" class="px-3 py-1 bg-blue-500 text-white rounded">Create</button>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.body.appendChild(customDialog);
+      
+      // Get the description from the dialog
+      const description = await new Promise<string>((resolve) => {
+        const input = document.getElementById('backup-description') as HTMLInputElement;
+        const confirmBtn = document.getElementById('confirm-backup');
+        const cancelBtn = document.getElementById('cancel-backup');
+        
+        confirmBtn?.addEventListener('click', () => {
+          const value = input?.value || "Manual backup";
+          document.body.removeChild(customDialog);
+          resolve(value);
+        });
+        
+        cancelBtn?.addEventListener('click', () => {
+          document.body.removeChild(customDialog);
+          resolve("");
+        });
+      });
+      
+      if (!description) {
+        setIsCreatingBackup(false);
+        return;
+      }
       
       // Create a backup copy of the current board state
       await createBackup(authState.user.id, state.boardId, {
@@ -755,7 +792,7 @@ const Board: React.FC = () => {
 
       {/* Update Manager Modal */}
       {showUpdateManager && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\" role="dialog\" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true">
           <div className="relative">
             <UpdateManager onClose={() => setShowUpdateManager(false)} />
           </div>
