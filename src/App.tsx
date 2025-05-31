@@ -15,9 +15,6 @@ declare global {
       onUpdateAvailable: (callback: () => void) => void;
       onUpdateDownloaded: (callback: () => void) => void;
       installUpdate: () => void;
-      setUpdateRepository: (repoUrl: string) => Promise<boolean>;
-      getUpdateRepository: () => Promise<{repoUrl: string, owner: string, repo: string}>;
-      checkForUpdates: () => Promise<boolean>;
     };
   }
 }

@@ -8,32 +8,27 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Check if node_modules/electron exists
 const electronPath = path.join(__dirname, '..', 'node_modules', 'electron');
-if (fs.existsSync(electronPath)) {
-  console.log('Removing existing Electron installation...');
-  try {
-    fs.rmSync(electronPath, { recursive: true, force: true });
-    console.log('Existing Electron installation removed successfully');
-  } catch (err) {
-    console.error('Failed to remove existing Electron installation:', err);
-  }
-}
-
-console.log('Installing Electron...');
-// Install electron with the force flag as it's needed for proper installation in this environment
-const install = spawn('npm', ['install', 'electron@30.0.3', '--save-dev', '--force'], {
-  stdio: 'inherit',
-  shell: true
-});
-
-install.on('close', (code) => {
-  if (code !== 0) {
-    console.error('Failed to install Electron');
-    process.exit(1);
-  }
+if (!fs.existsSync(electronPath)) {
+  console.log('Electron module not found. Reinstalling...');
   
-  console.log('Electron installed successfully');
+  // Run npm install electron --force
+  const install = spawn('npm', ['install', 'electron@30.0.3', '--save-dev'], {
+    stdio: 'inherit',
+    shell: true
+  });
+  
+  install.on('close', (code) => {
+    if (code !== 0) {
+      console.error('Failed to reinstall Electron');
+      process.exit(1);
+    }
+    
+    console.log('Electron reinstalled successfully');
+    startElectron();
+  });
+} else {
   startElectron();
-});
+}
 
 function startElectron() {
   // Check if we have the proper directories
@@ -58,17 +53,10 @@ function startElectron() {
   // Give vite some time to start
   setTimeout(() => {
     console.log('Starting Electron...');
-    // Use npx to ensure we use the local electron installation
-    const electron = spawn('npx', ['electron', '.'], {
+    const electron = spawn('electron', ['.'], {
       stdio: 'inherit',
       shell: true,
       env: { ...process.env, ELECTRON_DEV: 'true', ELECTRON_ENABLE_LOGGING: '1' }
-    });
-    
-    electron.on('error', (error) => {
-      console.error('Failed to start Electron:', error);
-      vite.kill();
-      process.exit(1);
     });
     
     electron.on('close', (code) => {
