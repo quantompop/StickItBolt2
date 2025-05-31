@@ -149,19 +149,6 @@ vi.mock('firebase/app', () => {
   };
 });
 
-// Add missing React imports for JSX in tests
-vi.mock('react', async () => {
-  const actual = await vi.importActual('react');
-  return {
-    ...actual,
-    useState: actual.useState,
-    useEffect: actual.useEffect,
-    useRef: actual.useRef,
-    useCallback: actual.useCallback,
-    useMemo: actual.useMemo
-  };
-});
-
 // Run cleanup after each test case
 afterEach(() => {
   cleanup();
