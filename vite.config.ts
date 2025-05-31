@@ -6,6 +6,7 @@ import { resolve } from 'path';
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
+    include: ['draft-js', 'react-draft-wysiwyg'],
     exclude: ['lucide-react'],
     esbuildOptions: {
       target: 'es2020',
@@ -48,7 +49,8 @@ export default defineConfig({
         assetFileNames: 'assets/[name].[hash].[ext]',
         chunkFileNames: 'assets/[name].[hash].js',
         entryFileNames: 'assets/[name].[hash].js'
-      }
+      },
+      external: []
     },
     assetsInlineLimit: 4096, // Inline small assets (4kb or less)
   },
