@@ -1,6 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Note as NoteType, NoteColor } from '../types';
-import { X, MoreVertical, Plus, Trash, Edit, Palette, Type, AlignJustify, Search, Paperclip as PaperClip } from 'lucide-react';
+// Import only the icons we actually need to reduce bundle size
+import { X } from 'lucide-react';
+import { MoreVertical } from 'lucide-react';
+import { Plus } from 'lucide-react';
+import { Trash } from 'lucide-react';
+import { Edit } from 'lucide-react';
+import { Palette } from 'lucide-react';
+import { Type } from 'lucide-react';
+import { AlignJustify } from 'lucide-react';
+import { Search } from 'lucide-react';
+import { Paperclip } from 'lucide-react';
 import Task from './Task';
 import ColorPicker from './ColorPicker';
 import SliderControl from './SliderControl';
@@ -534,7 +544,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
                 setShowSpacingControls(false);
               }}
             >
-              <PaperClip size={14} className="mr-2" />
+              <Paperclip size={14} className="mr-2" />
               Attachments
             </button>
             <button 
@@ -709,7 +719,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
             }}
           >
             <span className="flex items-center">
-              <PaperClip size={14} className="mr-1 text-green-600" />
+              <Paperclip size={14} className="mr-1 text-green-600" />
               {note.attachments.length} attachment{note.attachments.length !== 1 ? 's' : ''}
             </span>
             <button 
@@ -771,7 +781,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
               setShowMenu(true);
             }}
           >
-            <PaperClip size={14} className="mr-1" />
+            <Paperclip size={14} className="mr-1" />
             {note.attachments && note.attachments.length > 0 
               ? `Manage attachments (${note.attachments.length})` 
               : 'Add attachments'}

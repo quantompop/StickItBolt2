@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash, Download, Archive, Search, X, History, Undo, Database, LogOut, Key, Github, RefreshCw } from 'lucide-react';
+import { 
+  Plus, Trash, Download, Archive, Search, X, History, 
+  Undo, Database, LogOut, Key, Github, RefreshCw
+} from 'lucide-react';
 import Note from './Note';
 import ArchivedTasksList from './ArchivedTasksList';
 import VersionHistory from './VersionHistory';
