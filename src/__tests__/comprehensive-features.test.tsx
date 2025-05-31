@@ -4,13 +4,6 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { BoardState, Task } from '../types';
 
-// Create direct mocks for BoardContext exports
-const ADD_NOTE = 'ADD_NOTE';
-const SAVE_VERSION = 'SAVE_VERSION';
-const SET_SEARCH = 'SET_SEARCH';
-const TOGGLE_TASK = 'TOGGLE_TASK';
-const SET_TASK_PRIORITY = 'SET_TASK_PRIORITY';
-
 // Mock the required components with interactive elements
 vi.mock('../components/SliderControl', () => ({
   default: ({ value, onChange }) => (
@@ -92,21 +85,18 @@ const createInitialState = (): BoardState => ({
 });
 
 // Mock context
-vi.mock('../context/BoardContext', () => {
+vi.mock('../context/BoardContext', async (importOriginal) => {
   const mockDispatch = vi.fn();
+  const actual = await importOriginal();
   
   return {
+    ...actual, // This preserves all the original constants like ADD_NOTE, TOGGLE_TASK, etc.
     boardReducer: vi.fn(),
     useBoard: vi.fn(() => ({
       state: createInitialState(),
       dispatch: mockDispatch
     })),
-    BoardProvider: ({ children }) => <>{children}</>,
-    ADD_NOTE: 'ADD_NOTE',
-    TOGGLE_TASK: 'TOGGLE_TASK',
-    SET_TASK_PRIORITY: 'SET_TASK_PRIORITY',
-    SET_SEARCH: 'SET_SEARCH',
-    SAVE_VERSION: 'SAVE_VERSION'
+    BoardProvider: ({ children }) => <>{children}</>
   };
 });
 
@@ -203,6 +193,9 @@ describe('Comprehensive Feature Tests', () => {
     });
     
     it('should test all task context menu operations work', async () => {
+      // Get the actual constants from the imported context
+      const { TOGGLE_TASK, SET_TASK_PRIORITY } = require('../context/BoardContext');
+      
       // Create a task to test with
       const testTask = {
         id: 'task-test',
@@ -282,6 +275,9 @@ describe('Comprehensive Feature Tests', () => {
   
   describe('Complex Board Interactions', () => {
     it('should test all board toolbar buttons work correctly', async () => {
+      // Get the actual constants from the imported context
+      const { ADD_NOTE, SAVE_VERSION, SET_SEARCH } = require('../context/BoardContext');
+      
       const TestBoard = () => (
         <div>
           <button 
