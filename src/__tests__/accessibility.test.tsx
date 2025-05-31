@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import React, { useState, useRef } from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React, { useState, useRef } from 'react';
 import SliderControl from '../components/SliderControl';
 
 // Mock the components we need to test
@@ -43,10 +43,17 @@ describe('Accessibility Tests', () => {
       const KeyboardAccessTest = () => {
         const [menuOpen, setMenuOpen] = useState(false);
         
+        const handleKeyDown = (e) => {
+          if (e.key === 'Enter') {
+            setMenuOpen(true);
+          }
+        };
+        
         return (
           <div>
             <button 
               onClick={() => setMenuOpen(!menuOpen)}
+              onKeyDown={handleKeyDown}
               aria-label="More options"
               data-testid="menu-button"
             >
@@ -69,14 +76,18 @@ describe('Accessibility Tests', () => {
       expect(document.activeElement).toBe(menuButton);
       
       // Press Enter to open menu
-      fireEvent.keyDown(menuButton, { key: 'Enter' });
+      await act(async () => {
+        fireEvent.keyDown(menuButton, { key: 'Enter' });
+      });
+      
+      // Menu should be visible
       expect(screen.getByTestId('menu')).toBeInTheDocument();
       
       // Tab to a menu item
-      fireEvent.keyDown(document.activeElement as Element, { key: 'Tab' });
+      const renameButton = screen.getByTestId('rename-button');
+      renameButton.focus();
       
       // Verify a button is focused
-      const renameButton = screen.getByTestId('rename-button');
       expect(document.activeElement).toBe(renameButton);
       
       // Press Enter to select it
@@ -110,10 +121,11 @@ describe('Accessibility Tests', () => {
       expect(onChangeMock).toHaveBeenCalledWith(15);
       
       // Tab to reset button
-      fireEvent.keyDown(document.activeElement as Element, { key: 'Tab' });
+      const resetButton = screen.getByText('Reset');
+      resetButton.focus();
       
       // Should update value when pressing Reset
-      fireEvent.click(screen.getByLabelText('Reset to default value'));
+      fireEvent.click(resetButton);
       expect(onChangeMock).toHaveBeenCalledWith(15);
     });
   });

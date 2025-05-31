@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { boardReducer } from '../context/BoardContext';
 import { BoardState } from '../types';
 
 // Mock the required components
@@ -86,12 +85,11 @@ const createInitialState = (): BoardState => ({
 });
 
 // Mock context
-vi.mock('../context/BoardContext', async () => {
-  const actual = await vi.importActual('../context/BoardContext');
+vi.mock('../context/BoardContext', () => {
   const mockDispatch = vi.fn();
   
   return {
-    ...actual,
+    boardReducer: vi.fn(),
     useBoard: vi.fn(() => ({
       state: createInitialState(),
       dispatch: mockDispatch
@@ -100,11 +98,8 @@ vi.mock('../context/BoardContext', async () => {
   };
 });
 
-vi.mock('../context/AuthContext', async () => {
-  const actual = await vi.importActual('../context/AuthContext');
-  
+vi.mock('../context/AuthContext', () => {
   return {
-    ...actual,
     useAuth: vi.fn(() => ({
       state: {
         isAuthenticated: true,

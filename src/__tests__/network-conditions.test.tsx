@@ -161,15 +161,17 @@ describe('Network Conditions Tests', () => {
           setStatus('loading');
           
           try {
-            // First attempt will fail, subsequent attempts succeed
+            // Simulate network error for the initial attempt
             if (retryCount === 0) {
               throw new Error('Network error');
             }
             
+            // Successful response after retry
             const result = { success: true, message: 'Data loaded successfully on retry' };
             setData(result);
             setStatus('success');
           } catch (error) {
+            console.error('Network error:', error);
             setStatus('error');
           }
         };
@@ -202,7 +204,7 @@ describe('Network Conditions Tests', () => {
               </div>
             )}
             
-            {data && (
+            {data && status === 'success' && (
               <div data-testid="data-display">
                 {data.message}
               </div>
@@ -230,8 +232,12 @@ describe('Network Conditions Tests', () => {
       // Retry count should increase
       expect(screen.getByTestId('retry-count')).toHaveTextContent('Retry count: 1');
       
-      // Should now show success
-      expect(screen.getByTestId('status')).toHaveTextContent('success');
+      // Should now show success status
+      await waitFor(() => {
+        expect(screen.getByTestId('status')).toHaveTextContent('success');
+      });
+      
+      // Data should be displayed
       expect(screen.getByTestId('data-display')).toHaveTextContent('Data loaded successfully on retry');
       
       // Error message should be gone

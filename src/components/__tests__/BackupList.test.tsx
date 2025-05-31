@@ -13,19 +13,14 @@ vi.mock('../../firebase/backup', () => ({
 }));
 
 // Mock the context
-vi.mock('../../context/BoardContext', async () => {
-  const originalModule = await vi.importActual('../../context/BoardContext');
-  
-  return {
-    ...originalModule,
-    useBoard: vi.fn(() => ({
-      state: {
-        boardId: 'board-123'
-      },
-      dispatch: vi.fn()
-    }))
-  };
-});
+vi.mock('../../context/BoardContext', () => ({
+  useBoard: vi.fn(() => ({
+    state: {
+      boardId: 'board-123'
+    },
+    dispatch: vi.fn()
+  }))
+}));
 
 describe('BackupList Component', () => {
   const mockBackups = [
@@ -56,7 +51,7 @@ describe('BackupList Component', () => {
     vi.spyOn(window, 'confirm').mockImplementation(() => true);
   });
 
-  it.skip('should load and display backups', async () => {
+  it('should load and display backups', async () => {
     render(<BackupList onClose={mockOnClose} />);
 
     // Wait for backups to load
@@ -68,7 +63,7 @@ describe('BackupList Component', () => {
     expect(screen.getByText('Second backup')).toBeInTheDocument();
   });
 
-  it.skip('should handle search functionality', async () => {
+  it('should handle search functionality', async () => {
     render(<BackupList onClose={mockOnClose} />);
     
     // Wait for backups to load
@@ -92,7 +87,7 @@ describe('BackupList Component', () => {
     expect(screen.getByText('Second backup')).toBeInTheDocument();
   });
 
-  it.skip('should handle restore functionality', async () => {
+  it('should handle restore functionality', async () => {
     // Mock getBackupById to return a backup
     vi.mocked(backupService.getBackupById).mockResolvedValue({
       id: 'backup-1',
@@ -125,7 +120,7 @@ describe('BackupList Component', () => {
     });
   });
 
-  it.skip('should handle errors', async () => {
+  it('should handle errors', async () => {
     // Mock getBoardBackups to throw an error
     vi.mocked(backupService.getBoardBackups).mockRejectedValue(new Error('Failed to load backups'));
     
