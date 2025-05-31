@@ -92,6 +92,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
     setShowMenu(false);
     setTimeout(() => {
       inputRef.current?.focus();
+      inputRef.current?.select(); // Select all text when editing starts
     }, 0);
   };
   
@@ -248,6 +249,12 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   
   // Drag handling
   const handleDragStart = (e: React.DragEvent) => {
+    // Don't allow drag if we're editing
+    if (isEditing) {
+      e.preventDefault();
+      return;
+    }
+    
     if (!task || !task.id || !state) return;
     
     // Get the current note's tasks
@@ -307,6 +314,12 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   };
   
   const handleDragOver = (e: React.DragEvent) => {
+    // Don't process drag events if we're editing
+    if (isEditing) {
+      e.preventDefault();
+      return;
+    }
+    
     e.preventDefault();
     
     // Only process if we're dragging a task
@@ -339,6 +352,9 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    
+    // Don't process drop events if we're editing
+    if (isEditing) return;
     
     // Remove visual indicators
     if (taskRef.current) {
@@ -446,7 +462,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
         fontSize: `${textSize}px`
       }}
       onContextMenu={toggleMenu}
-      draggable={true}
+      draggable={!isEditing} // Only draggable when not editing
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
@@ -481,6 +497,9 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
           onBlur={handleSave}
           onKeyDown={handleKeyDown}
           style={{ fontSize: `${textSize}px` }}
+          onClick={(e) => e.stopPropagation()} // Prevent event bubbling for click events
+          onMouseDown={(e) => e.stopPropagation()} // Prevent event bubbling for mouse events
+          draggable={false} // Ensure the input isn't draggable
         />
       ) : (
         <div 
