@@ -117,7 +117,7 @@ describe('Functional Regression Tests', () => {
       expect(screen.getByText('17px')).toBeInTheDocument();
     });
     
-    it.skip('should test priority submenu display and interaction', async () => {
+    it('should test priority submenu display and interaction', async () => {
       // Create a component to test priority menu regression
       const PriorityMenuTest = () => {
         const [priority, setPriority] = useState('none');
@@ -168,7 +168,7 @@ describe('Functional Regression Tests', () => {
       );
     });
     
-    it.skip('should test text synchronization during edits', async () => {
+    it('should test text synchronization during edits', async () => {
       // Create a component to test title edit synchronization
       const TitleEditTest = () => {
         const [title, setTitle] = useState('Initial Title');
@@ -232,7 +232,7 @@ describe('Functional Regression Tests', () => {
       );
     });
     
-    it.skip('should test sign out functionality', async () => {
+    it('should test sign out functionality', async () => {
       // Mock sign out function
       const signOut = vi.fn().mockResolvedValue(true);
       
@@ -303,7 +303,7 @@ describe('Functional Regression Tests', () => {
   });
   
   describe('Board Component State Transitions', () => {
-    it.skip('should handle panel transitions correctly', async () => {
+    it('should handle panel transitions correctly', async () => {
       // Create a component that mimics the Board component's panel behavior
       const BoardPanels = () => {
         const [showArchive, setShowArchive] = useState(false);

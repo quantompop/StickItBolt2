@@ -141,7 +141,7 @@ describe('Comprehensive Feature Tests', () => {
   });
   
   describe('All UI Controls Functionality', () => {
-    it.skip('should test all sliders work correctly', async () => {
+    it('should test all sliders work correctly', async () => {
       // Create a note with specific props to test
       const testNote = {
         id: 'note-test',
@@ -179,7 +179,9 @@ describe('Comprehensive Feature Tests', () => {
       render(<TestNoteWithSlider />);
       
       // Click increase button
-      await userEvent.click(screen.getByTestId('increase-size'));
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('increase-size'));
+      });
       
       // Dispatch should be called with correct action
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -193,7 +195,7 @@ describe('Comprehensive Feature Tests', () => {
       );
     });
     
-    it.skip('should test all task context menu operations work', async () => {
+    it('should test all task context menu operations work', async () => {
       // Create a task to test with
       const testTask = {
         id: 'task-test',
@@ -234,7 +236,9 @@ describe('Comprehensive Feature Tests', () => {
       render(<TestContextMenu />);
       
       // Test toggle task
-      await userEvent.click(screen.getByTestId('toggle-task'));
+      await act(async () => {
+        await userEvent.click(screen.getByTestId('toggle-task'));
+      });
       
       // Dispatch should be called with toggle task action
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -251,7 +255,9 @@ describe('Comprehensive Feature Tests', () => {
       mockDispatch.mockClear();
       
       // Test set priority
-      await userEvent.click(screen.getByTestId('set-priority'));
+      await act(async () => {
+        await userEvent.click(screen.getByTestId('set-priority'));
+      });
       
       // Dispatch should be called with set priority action
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -268,7 +274,7 @@ describe('Comprehensive Feature Tests', () => {
   });
   
   describe('Complex Board Interactions', () => {
-    it.skip('should test all board toolbar buttons work correctly', async () => {
+    it('should test all board toolbar buttons work correctly', async () => {
       const TestBoard = () => (
         <div>
           <button 
@@ -306,7 +312,9 @@ describe('Comprehensive Feature Tests', () => {
       render(<TestBoard />);
       
       // Test Add Note button
-      await userEvent.click(screen.getByTestId('add-note'));
+      await act(async () => {
+        await userEvent.click(screen.getByTestId('add-note'));
+      });
       
       // Dispatch should be called with ADD_NOTE action
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -319,7 +327,9 @@ describe('Comprehensive Feature Tests', () => {
       mockDispatch.mockClear();
       
       // Test Save Version button
-      await userEvent.click(screen.getByTestId('save-version'));
+      await act(async () => {
+        await userEvent.click(screen.getByTestId('save-version'));
+      });
       
       // Dispatch should be called with SAVE_VERSION action
       expect(mockDispatch).toHaveBeenCalledWith(
@@ -335,7 +345,9 @@ describe('Comprehensive Feature Tests', () => {
       mockDispatch.mockClear();
       
       // Test Search button
-      await userEvent.click(screen.getByTestId('toggle-search'));
+      await act(async () => {
+        await userEvent.click(screen.getByTestId('toggle-search'));
+      });
       
       // Dispatch should be called with SET_SEARCH action
       expect(mockDispatch).toHaveBeenCalledWith(

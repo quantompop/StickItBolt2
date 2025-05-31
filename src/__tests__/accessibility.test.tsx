@@ -38,7 +38,7 @@ describe('Accessibility Tests', () => {
   });
   
   describe('Keyboard Accessibility', () => {
-    it.skip('should allow operating note controls with keyboard', async () => {
+    it('should allow operating note controls with keyboard', async () => {
       // Create a simple component for keyboard testing
       const KeyboardAccessTest = () => {
         const [menuOpen, setMenuOpen] = useState(false);
@@ -83,7 +83,7 @@ describe('Accessibility Tests', () => {
       fireEvent.keyDown(renameButton, { key: 'Enter' });
     });
     
-    it.skip('should allow operating slider controls with keyboard', async () => {
+    it('should allow operating slider controls with keyboard', async () => {
       const onChangeMock = vi.fn();
       
       render(

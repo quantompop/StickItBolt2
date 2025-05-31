@@ -59,7 +59,7 @@ describe('E2E Simulation Tests', () => {
   });
   
   describe('Full User Workflow Simulation', () => {
-    it.skip('should support the complete authentication and note creation flow', async () => {
+    it('should support the complete authentication and note creation flow', async () => {
       // Mock auth state to return null initially (not logged in)
       let authCallback: ((user: any) => void) | null = null;
       

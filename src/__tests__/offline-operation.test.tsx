@@ -88,7 +88,7 @@ describe('Offline Operation Tests', () => {
   });
   
   describe('Offline Data Persistence', () => {
-    it.skip('should save changes to localStorage when offline', async () => {
+    it('should save changes to localStorage when offline', async () => {
       // Set up initial state in localStorage
       localStorageMock.setItem('stickitState', JSON.stringify(createTestState()));
       
@@ -166,7 +166,7 @@ describe('Offline Operation Tests', () => {
       expect(hasOfflineTask).toBe(true);
     });
     
-    it.skip('should sync local changes when coming back online', async () => {
+    it('should sync local changes when coming back online', async () => {
       // Initial state with a note
       const initialState = createTestState();
       localStorageMock.setItem('stickitState', JSON.stringify(initialState));
@@ -282,7 +282,7 @@ describe('Offline Operation Tests', () => {
       );
     });
     
-    it.skip('should handle concurrent online/offline modifications', async () => {
+    it('should handle concurrent online/offline modifications', async () => {
       // Create initial state
       const initialState = createTestState();
       
@@ -412,7 +412,7 @@ describe('Offline Operation Tests', () => {
   });
   
   describe('Offline Indicator and UX', () => {
-    it.skip('should indicate offline status to the user', async () => {
+    it('should indicate offline status to the user', async () => {
       // Mock being offline
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
       
@@ -452,7 +452,7 @@ describe('Offline Operation Tests', () => {
   });
   
   describe('Offline Queue Management', () => {
-    it.skip('should queue operations while offline and process them when online', async () => {
+    it('should queue operations while offline and process them when online', async () => {
       // Set up mocks
       const operationQueue: any[] = [];
       const processQueueMock = vi.fn();
