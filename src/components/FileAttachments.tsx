@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Paperclip as PaperClip, File, X, Download, Trash, Upload } from 'lucide-react';
+import { Paperclip, File, X, Download, Trash, Upload } from 'lucide-react';
 import { Attachment } from '../types';
 import { useBoard, ADD_ATTACHMENT, REMOVE_ATTACHMENT } from '../context/BoardContext';
 
@@ -181,7 +181,7 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
             </>
           ) : (
             <>
-              <PaperClip size={16} className="mr-1" />
+              <Paperclip size={16} className="mr-1" />
               {attachments.length > 0 ? 'Add more files' : 'Attach files'}
             </>
           )}

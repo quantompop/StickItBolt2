@@ -54,3 +54,8 @@
     padding: 8px;
   }
 }
+
+/* Read-only styles for rich text view */
+.rich-text-view .public-DraftEditor-content {
+  pointer-events: none;
+}
