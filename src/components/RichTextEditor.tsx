@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Editor, EditorState, RichUtils, convertToRaw, convertFromRaw, ContentState } from 'draft-js';
 import 'draft-js/dist/Draft.css';
+import './RichTextEditor.css';
 import { Bold, Italic, Underline, Code } from 'lucide-react';
 
 interface RichTextEditorProps {
