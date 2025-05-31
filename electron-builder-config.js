@@ -39,7 +39,9 @@ module.exports = {
           "x64"
         ]
       }
-    ]
+    ],
+    artifactName: "${productName}-Setup-${version}.${ext}",
+    icon: "public/icons/icon.ico"
   },
   linux: {
     target: [
@@ -52,6 +54,12 @@ module.exports = {
     oneClick: true,
     perMachine: false,
     allowToChangeInstallationDirectory: false,
-    deleteAppDataOnUninstall: true
-  }
+    deleteAppDataOnUninstall: true,
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true
+  },
+  asar: true,
+  asarUnpack: [
+    "**/*.{node,dll,exe}"
+  ]
 };

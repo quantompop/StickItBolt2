@@ -1,3 +1,4 @@
+// Electron preload script - needs to use CommonJS
 const { contextBridge, ipcRenderer } = require('electron');
 
 // Expose protected methods that allow the renderer process to use

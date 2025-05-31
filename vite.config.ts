@@ -21,13 +21,13 @@ export default defineConfig({
           firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore'],
           lucide: ['lucide-react']
         },
-        assetFileNames: 'assets/[name]-[hash].[ext]',
-        chunkFileNames: 'assets/[name]-[hash].js',
-        entryFileNames: 'assets/[name]-[hash].js'
+        assetFileNames: 'assets/[name].[hash].[ext]',
+        chunkFileNames: 'assets/[name].[hash].js',
+        entryFileNames: 'assets/[name].[hash].js'
       }
     },
     chunkSizeWarningLimit: 700,
-    assetsInlineLimit: 0, // Don't inline any assets, ensure they're always separate files
+    assetsInlineLimit: 4096, // Inline small assets (4kb or less)
   },
   base: './', // Use relative paths - crucial for Electron to find assets
   server: {

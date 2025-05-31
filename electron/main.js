@@ -29,9 +29,12 @@ function createWindow() {
     console.log('Running in production mode');
     try {
       // Use path.join for cross-platform compatibility
-      const indexPath = path.join(__dirname, '../dist/index.html');
+      const indexPath = path.resolve(__dirname, '../dist/index.html');
       console.log('Loading app from:', indexPath);
       mainWindow.loadFile(indexPath);
+      
+      // For debugging in production
+      // mainWindow.webContents.openDevTools();
     } catch (error) {
       console.error('Error loading file:', error);
     }

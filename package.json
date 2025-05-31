@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "node electron/run-app.js",
-    "electron:build": "vite build && electron-builder --config electron-builder-config.js",
+    "electron:build": "tsc && vite build && electron-builder --config electron-builder-config.js",
     "electron:preview": "vite build && node electron/web-preview.js",
     "electron:clean": "rimraf node_modules/electron && npm install electron@30.0.3 --save-dev",
     "web:preview": "vite build && vite preview",

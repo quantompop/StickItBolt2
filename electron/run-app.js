@@ -12,7 +12,7 @@ if (!fs.existsSync(electronPath)) {
   console.error('Electron module not found. Reinstalling...');
   
   // Run npm install electron --force
-  const install = spawn('npm', ['install', 'electron@30.0.3', '--force'], {
+  const install = spawn('npm', ['install', 'electron@30.0.3', '--save-dev'], {
     stdio: 'inherit',
     shell: true
   });
@@ -31,7 +31,19 @@ if (!fs.existsSync(electronPath)) {
 }
 
 function startElectron() {
-  // Start vite dev server
+  // Check if we have the proper directories
+  const distElectronDir = path.join(__dirname, '..', 'dist-electron');
+  if (!fs.existsSync(distElectronDir)) {
+    fs.mkdirSync(distElectronDir, { recursive: true });
+  }
+  
+  // Copy main.js and preload.js to dist-electron
+  const mainJsPath = path.join(distElectronDir, 'main.js');
+  const preloadJsPath = path.join(distElectronDir, 'preload.js');
+  
+  fs.copyFileSync(path.join(__dirname, 'main.js'), mainJsPath);
+  fs.copyFileSync(path.join(__dirname, 'preload.js'), preloadJsPath);
+  
   console.log('Starting Vite dev server...');
   const vite = spawn('npm', ['run', 'dev'], {
     stdio: 'inherit',
@@ -40,19 +52,6 @@ function startElectron() {
   
   // Give vite some time to start
   setTimeout(() => {
-    // Check if we have the proper directories
-    const distElectronDir = path.join(__dirname, '..', 'dist-electron');
-    if (!fs.existsSync(distElectronDir)) {
-      fs.mkdirSync(distElectronDir, { recursive: true });
-    }
-    
-    // Copy main.js and preload.js to dist-electron
-    const mainJsPath = path.join(distElectronDir, 'main.js');
-    const preloadJsPath = path.join(distElectronDir, 'preload.js');
-    
-    fs.copyFileSync(path.join(__dirname, 'main.js'), mainJsPath);
-    fs.copyFileSync(path.join(__dirname, 'preload.js'), preloadJsPath);
-    
     console.log('Starting Electron...');
     const electron = spawn('electron', ['.'], {
       stdio: 'inherit',
