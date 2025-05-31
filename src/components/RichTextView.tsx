@@ -1,6 +1,6 @@
 import React from 'react';
 import { Editor, EditorState, convertFromRaw, ContentState } from 'draft-js';
-// Remove the problematic CSS import
+// Import styles locally
 import './RichTextEditor.css';
 
 interface RichTextViewProps {
