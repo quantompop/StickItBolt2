@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RecurrencePattern } from '../types';
-import { Calendar, Calendar1, CalendarDays, RotateCcw, X } from 'lucide-react';
+import { Calendar, Calendar as Calendar1, CalendarDays, RotateCcw, X } from 'lucide-react';
 
 interface RecurrenceSelectorProps {
   value: RecurrencePattern | undefined;
