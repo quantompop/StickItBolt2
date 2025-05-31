@@ -4,13 +4,13 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { BoardState } from '../types';
 
-// Mock the required components
+// Mock the required components with interactive elements
 vi.mock('../components/SliderControl', () => ({
   default: ({ value, onChange }) => (
     <div>
       Slider Control: {value}
-      <button onClick={() => onChange(value + 1)}>Increase</button>
-      <button onClick={() => onChange(value - 1)}>Decrease</button>
+      <button data-testid="increase-button" onClick={() => onChange(value + 1)}>Increase</button>
+      <button data-testid="decrease-button" onClick={() => onChange(value - 1)}>Decrease</button>
     </div>
   )
 }));
@@ -19,11 +19,11 @@ vi.mock('../components/Task', () => ({
   default: ({ task }) => (
     <div className="task-item">
       {task.text}
-      <div className="context-menu">
-        <div>Mark complete</div>
-        <div>Edit task</div>
-        <div>Set priority</div>
-        <div>Delete task</div>
+      <div className="context-menu" data-testid="task-context-menu">
+        <div data-testid="mark-complete" onClick={() => {}}>Mark complete</div>
+        <div data-testid="edit-task" onClick={() => {}}>Edit task</div>
+        <div data-testid="set-priority" onClick={() => {}}>Set priority</div>
+        <div data-testid="delete-task" onClick={() => {}}>Delete task</div>
       </div>
     </div>
   )
@@ -33,10 +33,10 @@ vi.mock('../components/Note', () => ({
   default: ({ note }) => (
     <div>
       <div className="note-header">{note.title}</div>
-      <button aria-label="More options">More options</button>
-      <div>Text size</div>
+      <button aria-label="More options" data-testid="note-options">More options</button>
+      <div data-testid="text-size-option">Text size</div>
       {note.tasks?.map(task => (
-        <div key={task.id}>{task.text}</div>
+        <div key={task.id} data-testid={`task-${task.id}`}>{task.text}</div>
       ))}
     </div>
   )
@@ -45,10 +45,10 @@ vi.mock('../components/Note', () => ({
 vi.mock('../components/Board', () => ({
   default: () => (
     <div>
-      <button>Add Note</button>
-      <button>Archive</button>
-      <button>Search</button>
-      <button>History</button>
+      <button data-testid="add-note">Add Note</button>
+      <button data-testid="archive-button">Archive</button>
+      <button data-testid="search-button">Search</button>
+      <button data-testid="history-button">History</button>
       <div>Mock Board Content</div>
     </div>
   )

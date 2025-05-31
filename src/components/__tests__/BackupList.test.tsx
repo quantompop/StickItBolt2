@@ -12,15 +12,21 @@ vi.mock('../../firebase/backup', () => ({
   deleteBackup: vi.fn()
 }));
 
-// Mock the context
-vi.mock('../../context/BoardContext', () => ({
-  useBoard: vi.fn(() => ({
-    state: {
-      boardId: 'board-123'
-    },
-    dispatch: vi.fn()
-  }))
-}));
+// Mock the context with importActual to keep all exports
+vi.mock('../../context/BoardContext', async () => {
+  const actual = await vi.importActual('../../context/BoardContext');
+  const mockDispatch = vi.fn();
+  
+  return {
+    ...actual,
+    useBoard: vi.fn(() => ({
+      state: {
+        boardId: 'board-123'
+      },
+      dispatch: mockDispatch
+    }))
+  };
+});
 
 describe('BackupList Component', () => {
   const mockBackups = [
