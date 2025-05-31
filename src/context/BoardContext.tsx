@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
-import { Note, Task, BoardState, ArchivedTask, VersionSnapshot, TaskPriority } from '../types';
+import { Note, Task, BoardState, ArchivedTask, VersionSnapshot, TaskPriority, RecurrencePattern } from '../types';
 import { generateId } from '../utils/helpers';
 import { useAuth } from './AuthContext';
 import { saveBoardState, getBoardState } from '../firebase/storageService';
@@ -61,6 +61,7 @@ export const CLEAR_SEARCH = 'CLEAR_SEARCH';
 export const SAVE_VERSION = 'SAVE_VERSION';
 export const RESTORE_VERSION = 'RESTORE_VERSION';
 export const SET_TASK_PRIORITY = 'SET_TASK_PRIORITY';
+export const SET_TASK_RECURRENCE = 'SET_TASK_RECURRENCE';
 export const UNDO = 'UNDO';
 export const SYNC_BOARD = 'SYNC_BOARD';
 export const LOAD_BOARD = 'LOAD_BOARD';
@@ -295,6 +296,40 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
       return newState;
     }
     
+    case SET_TASK_RECURRENCE: {
+      const { noteId, taskId, recurrence } = action.payload;
+      
+      newState = {
+        ...state,
+        notes: (state.notes || []).map(note => 
+          note.id === noteId
+            ? {
+                ...note,
+                tasks: (note.tasks || []).map(task => 
+                  task.id === taskId ? { ...task, recurrence } : task
+                )
+              }
+            : note
+        ),
+        undoStack: addToUndoStack(state, action)
+      };
+      
+      // Create a version snapshot
+      const noteTitle = (state.notes || []).find(note => note.id === noteId)?.title;
+      const taskText = (state.notes || []).find(note => note.id === noteId)?.tasks.find(task => task.id === taskId)?.text || 'Unknown';
+      const action_description = recurrence 
+        ? `Set recurrence for task in ${noteTitle || 'Unknown'}`
+        : `Removed recurrence from task in ${noteTitle || 'Unknown'}`;
+      
+      const snapshot = createVersionSnapshot(
+        newState, 
+        `${action_description}: ${taskText.substring(0, 20)}${taskText.length > 20 ? '...' : ''}`
+      );
+      newState.versionHistory = [...(state.versionHistory || []), snapshot];
+      
+      return newState;
+    }
+    
     case DELETE_TASK: {
       const { noteId, taskId } = action.payload;
       
@@ -365,19 +400,47 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
         completedAt: Date.now()
       };
       
-      newState = {
-        ...state,
-        archivedTasks: [...(state.archivedTasks || []), archivedTask],
-        notes: (state.notes || []).map(note => 
-          note.id === noteId
-            ? {
-                ...note,
-                tasks: (note.tasks || []).filter(task => task.id !== taskId)
-              }
-            : note
-        ),
-        undoStack: addToUndoStack(state, action)
-      };
+      // If the task is recurring, we need to create a new instance of it
+      if (task.recurrence) {
+        // For simplicity, let's add a new task with the same properties but different ID
+        const newRecurringTask: Task = {
+          ...task,
+          id: generateId(),
+          completed: false,
+          // We'd implement proper next date calculation in a real app
+        };
+        
+        newState = {
+          ...state,
+          archivedTasks: [...(state.archivedTasks || []), archivedTask],
+          notes: (state.notes || []).map(note => 
+            note.id === noteId
+              ? {
+                  ...note,
+                  tasks: (note.tasks || [])
+                    .filter(t => t.id !== taskId) // Remove the completed task
+                    .concat(newRecurringTask) // Add the new recurring instance
+                }
+              : note
+          ),
+          undoStack: addToUndoStack(state, action)
+        };
+      } else {
+        // Normal non-recurring task completion
+        newState = {
+          ...state,
+          archivedTasks: [...(state.archivedTasks || []), archivedTask],
+          notes: (state.notes || []).map(note => 
+            note.id === noteId
+              ? {
+                  ...note,
+                  tasks: (note.tasks || []).filter(task => task.id !== taskId)
+                }
+              : note
+          ),
+          undoStack: addToUndoStack(state, action)
+        };
+      }
       
       // Create a version snapshot
       const snapshot = createVersionSnapshot(newState, `Completed and archived task from ${note.title}: ${task.text.substring(0, 20)}${task.text.length > 20 ? '...' : ''}`);

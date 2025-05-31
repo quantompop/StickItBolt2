@@ -8,6 +8,17 @@ export interface Task {
   completed: boolean;
   indentation: number;
   priority: TaskPriority;
+  recurrence?: RecurrencePattern; // Optional recurrence pattern
+  dueDate?: string; // Optional due date in ISO format
+}
+
+export interface RecurrencePattern {
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval: number; // Every X days, weeks, etc.
+  daysOfWeek?: number[]; // For weekly: 0=Sunday, 6=Saturday
+  dayOfMonth?: number; // For monthly
+  endDate?: string; // When recurrence ends (ISO date string)
+  occurrences?: number; // Number of occurrences
 }
 
 export interface ArchivedTask {
@@ -16,6 +27,15 @@ export interface ArchivedTask {
   noteId: string;
   noteTitle: string;
   completedAt: number; // timestamp
+}
+
+export interface Attachment {
+  id: string;
+  name: string;
+  type: string;
+  size: number;
+  url: string;
+  createdAt: number;
 }
 
 export interface Note {
@@ -29,6 +49,7 @@ export interface Note {
   };
   textSize: number; // New property for text size
   taskSpacing: number; // New property for task spacing
+  attachments?: Attachment[]; // Optional attachments
 }
 
 export type NoteColor = 

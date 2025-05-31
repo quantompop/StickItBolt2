@@ -122,10 +122,17 @@ const Note: React.FC<NoteProps> = ({ note }) => {
     if (!note || !note.id) return;
     
     if (newTask.trim()) {
-      dispatch({
-        type: ADD_TASK,
-        payload: { noteId: note.id, text: newTask }
+      // Split by newlines to handle multi-line paste
+      const taskLines = newTask.split(/\r?\n/).filter(line => line.trim() !== '');
+      
+      // Add each line as a separate task
+      taskLines.forEach(text => {
+        dispatch({
+          type: ADD_TASK,
+          payload: { noteId: note.id, text }
+        });
       });
+      
       setNewTask('');
       // Focus back on the input for quick task creation
       setTimeout(() => {

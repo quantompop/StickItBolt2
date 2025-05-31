@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Task as TaskType, TaskPriority } from '../types';
-import { Check, Trash, Edit, ChevronRight, GripVertical, Flag, X } from 'lucide-react';
-import { useBoard, TOGGLE_TASK, DELETE_TASK, UPDATE_TASK, INDENT_TASK, SET_DRAGGED_TASK, REORDER_TASK, MOVE_TASK, SET_TASK_PRIORITY } from '../context/BoardContext';
+import { Task as TaskType, TaskPriority, RecurrencePattern } from '../types';
+import { 
+  Check, Trash, Edit, ChevronRight, GripVertical, Flag, X, 
+  Repeat, Calendar
+} from 'lucide-react';
+import { 
+  useBoard, TOGGLE_TASK, DELETE_TASK, UPDATE_TASK, 
+  INDENT_TASK, SET_DRAGGED_TASK, REORDER_TASK, 
+  MOVE_TASK, SET_TASK_PRIORITY, SET_TASK_RECURRENCE
+} from '../context/BoardContext';
+import RecurrenceSelector from './RecurrenceSelector';
 
 interface TaskProps {
   task: TaskType;
@@ -16,9 +24,11 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   const [taskText, setTaskText] = useState(task.text);
   const [showMenu, setShowMenu] = useState(false);
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
+  const [showRecurrenceSelector, setShowRecurrenceSelector] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const priorityMenuRef = useRef<HTMLDivElement>(null);
+  const recurrenceSelectorRef = useRef<HTMLDivElement>(null);
   const taskRef = useRef<HTMLDivElement>(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   
@@ -139,6 +149,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
     if (showMenu) {
       setShowMenu(false);
       setShowPriorityMenu(false); // Also close priority menu
+      setShowRecurrenceSelector(false); // Close recurrence selector
       return;
     }
     
@@ -154,10 +165,20 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   // Close menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node) && 
-          !taskRef.current?.contains(event.target as Node)) {
+      const target = event.target as Node;
+
+      // Check if click is inside any of the menus/selectors
+      const isClickInsideMenu = menuRef.current?.contains(target);
+      const isClickInsidePriorityMenu = priorityMenuRef.current?.contains(target);
+      const isClickInsideRecurrenceSelector = recurrenceSelectorRef.current?.contains(target);
+      const isClickInsideTask = taskRef.current?.contains(target);
+
+      // Only close menus if the click is outside all menus and the task
+      if (!isClickInsideMenu && !isClickInsidePriorityMenu && 
+          !isClickInsideRecurrenceSelector && !isClickInsideTask) {
         setShowMenu(false);
         setShowPriorityMenu(false);
+        setShowRecurrenceSelector(false);
       }
     };
     
@@ -202,6 +223,17 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
     if (!e) return;
     e.stopPropagation(); // Prevent closing the parent menu
     setShowPriorityMenu(!showPriorityMenu);
+    // Close recurrence selector if open
+    if (showRecurrenceSelector) setShowRecurrenceSelector(false);
+  };
+
+  // Toggle recurrence selector
+  const handleToggleRecurrenceSelector = (e: React.MouseEvent) => {
+    if (!e) return;
+    e.stopPropagation(); // Prevent closing the parent menu
+    setShowRecurrenceSelector(!showRecurrenceSelector);
+    // Close priority menu if open
+    if (showPriorityMenu) setShowPriorityMenu(false);
   };
   
   // Set task priority
@@ -213,6 +245,18 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
       payload: { noteId, taskId: task.id, priority }
     });
     setShowPriorityMenu(false);
+    setShowMenu(false);
+  };
+  
+  // Set task recurrence
+  const handleSetRecurrence = (recurrence: RecurrencePattern | undefined) => {
+    if (!task || !task.id) return;
+    
+    dispatch({
+      type: SET_TASK_RECURRENCE,
+      payload: { noteId, taskId: task.id, recurrence }
+    });
+    setShowRecurrenceSelector(false);
     setShowMenu(false);
   };
   
@@ -229,6 +273,17 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
     return (
       <span className={`mr-2 ${priorityColors[task.priority]}`}>
         <Flag size={14} />
+      </span>
+    );
+  };
+  
+  // Render recurrence icon if task is recurring
+  const renderRecurrenceIcon = () => {
+    if (!task || !task.recurrence) return null;
+    
+    return (
+      <span className="mr-2 text-purple-500">
+        <Repeat size={14} />
       </span>
     );
   };
@@ -448,6 +503,30 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
     return { top, left };
   };
   
+  // Format recurring task display
+  const formatRecurrence = (recurrence: RecurrencePattern): string => {
+    if (!recurrence) return '';
+    
+    let text = '';
+    
+    switch (recurrence.frequency) {
+      case 'daily':
+        text = recurrence.interval === 1 ? 'Daily' : `Every ${recurrence.interval} days`;
+        break;
+      case 'weekly':
+        text = recurrence.interval === 1 ? 'Weekly' : `Every ${recurrence.interval} weeks`;
+        break;
+      case 'monthly':
+        text = recurrence.interval === 1 ? 'Monthly' : `Every ${recurrence.interval} months`;
+        break;
+      case 'yearly':
+        text = recurrence.interval === 1 ? 'Yearly' : `Every ${recurrence.interval} years`;
+        break;
+    }
+    
+    return text;
+  };
+  
   const priorityMenuPosition = calculatePriorityMenuPosition();
   
   return (
@@ -511,6 +590,10 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
         >
           {/* Display priority flag before task text */}
           {renderPriorityFlag()}
+          
+          {/* Display recurrence icon if task is recurring */}
+          {renderRecurrenceIcon()}
+          
           {task.text}
         </div>
       )}
@@ -609,6 +692,38 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
               </div>
             )}
           </div>
+          
+          {/* Recurrence option */}
+          <div className="relative">
+            <button 
+              className="flex items-center w-full px-4 py-1.5 text-left hover:bg-gray-100 relative"
+              onClick={handleToggleRecurrenceSelector}
+              type="button"
+            >
+              <Repeat size={14} className="mr-2" />
+              {task.recurrence ? 'Edit recurrence' : 'Set recurrence'}
+              <ChevronRight size={14} className="absolute right-2" />
+            </button>
+            
+            {/* Recurrence Selector */}
+            {showRecurrenceSelector && (
+              <div 
+                ref={recurrenceSelectorRef}
+                className="fixed z-[100] bg-white rounded shadow-lg submenu"
+                style={{ 
+                  top: `${priorityMenuPosition.top}px`,
+                  left: `${priorityMenuPosition.left}px`
+                }}
+              >
+                <RecurrenceSelector 
+                  value={task.recurrence} 
+                  onChange={handleSetRecurrence}
+                  onClose={() => setShowRecurrenceSelector(false)}
+                />
+              </div>
+            )}
+          </div>
+          
           <button 
             className="flex items-center w-full px-4 py-1.5 text-left hover:bg-gray-100 text-red-600"
             onClick={handleDelete}

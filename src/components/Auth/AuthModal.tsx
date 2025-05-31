@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import Login from './Login';
 import Register from './Register';
 import PasswordChange from './PasswordChange';
+import PasswordReset from './PasswordReset';
 import { X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  initialMode?: 'login' | 'register' | 'password';
+  initialMode?: 'login' | 'register' | 'password' | 'reset';
 }
 
 const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'login' }) => {
@@ -38,7 +39,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         {mode === 'login' && (
           <Login 
             onSwitch={() => setMode('register')} 
-            onPasswordReset={() => setMode('password')}
+            onPasswordReset={() => setMode('reset')}
           />
         )}
         
@@ -48,6 +49,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialMode = 'l
         
         {mode === 'password' && (
           <PasswordChange onClose={onClose} />
+        )}
+
+        {mode === 'reset' && (
+          <PasswordReset onBack={() => setMode('login')} />
         )}
       </div>
     </div>
