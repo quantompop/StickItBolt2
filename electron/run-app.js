@@ -19,8 +19,8 @@ if (fs.existsSync(electronPath)) {
 }
 
 console.log('Installing Electron...');
-// Run npm install electron --force
-const install = spawn('npm', ['install', 'electron@30.0.3', '--save-dev', '--force'], {
+// Run npm install electron without the --force flag
+const install = spawn('npm', ['install', 'electron@30.0.3', '--save-dev'], {
   stdio: 'inherit',
   shell: true
 });
