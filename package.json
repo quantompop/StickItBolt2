@@ -27,9 +27,9 @@
     "test:e2e:headless": "cypress run",
     "prepare-test-env": "firebase emulators:start --only auth,firestore",
     "build:windows": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --windows",
-    "build:mac": "rimraf dist-electron && tsc && vite build && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --mac",
-    "build:linux": "rimraf dist-electron && tsc && vite build && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --linux",
-    "build:all": "rimraf dist-electron && tsc && vite build && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs -mwl",
+    "build:mac": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --mac",
+    "build:linux": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --linux",
+    "build:all": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs -mwl",
     "clean": "rimraf dist dist-electron"
   },
   "dependencies": {

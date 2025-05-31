@@ -447,7 +447,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setUpdateRepository: (repoUrl) => ipcRenderer.invoke('set-update-repository', repoUrl),
   getUpdateRepository: () => ipcRenderer.invoke('get-update-repository'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates')
-};`;
+}`;
 
     // Create package.json for dist-electron without "type": "module"
     const packageJson = {
