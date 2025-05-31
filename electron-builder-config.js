@@ -62,4 +62,4 @@ export default {
   asarUnpack: [
     "**/*.{node,dll,exe}"
   ]
-};
+}
