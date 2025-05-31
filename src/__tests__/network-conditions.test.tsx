@@ -17,7 +17,7 @@ vi.mock('firebase/firestore', async () => {
 });
 
 describe('Network Conditions Tests', () => {
-  // Setup user-event for more realistic interactions
+  // Setup user-event
   const user = userEvent.setup();
   
   beforeEach(() => {

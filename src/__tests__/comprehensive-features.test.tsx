@@ -4,6 +4,17 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event';
 import { BoardState, Task } from '../types';
 
+// Define the action constants directly here to avoid import issues
+const ADD_NOTE = 'ADD_NOTE';
+const UPDATE_NOTE = 'UPDATE_NOTE';
+const DELETE_NOTE = 'DELETE_NOTE';
+const TOGGLE_TASK = 'TOGGLE_TASK';
+const ADD_TASK = 'ADD_TASK';
+const CHANGE_TEXT_SIZE = 'CHANGE_TEXT_SIZE';
+const SET_TASK_PRIORITY = 'SET_TASK_PRIORITY';
+const SET_SEARCH = 'SET_SEARCH';
+const SAVE_VERSION = 'SAVE_VERSION';
+
 // Mock the required components with interactive elements
 vi.mock('../components/SliderControl', () => ({
   default: ({ value, onChange }) => (
@@ -85,13 +96,21 @@ const createInitialState = (): BoardState => ({
 });
 
 // Mock context
-vi.mock('../context/BoardContext', async (importOriginal) => {
+vi.mock('../context/BoardContext', () => {
   const mockDispatch = vi.fn();
-  const actual = await importOriginal();
   
   return {
-    ...actual, // This preserves all the original constants like ADD_NOTE, TOGGLE_TASK, etc.
-    boardReducer: vi.fn(),
+    // Export the constants we defined above
+    ADD_NOTE,
+    UPDATE_NOTE,
+    DELETE_NOTE,
+    TOGGLE_TASK,
+    ADD_TASK,
+    CHANGE_TEXT_SIZE,
+    SET_TASK_PRIORITY,
+    SET_SEARCH,
+    SAVE_VERSION,
+    // Mock the hook and provider
     useBoard: vi.fn(() => ({
       state: createInitialState(),
       dispatch: mockDispatch
@@ -163,7 +182,7 @@ describe('Comprehensive Feature Tests', () => {
             <button 
               data-testid="increase-size"
               onClick={() => mockDispatch({
-                type: 'CHANGE_TEXT_SIZE',
+                type: CHANGE_TEXT_SIZE,
                 payload: { id: testNote.id, size: testNote.textSize + 1 }
               })}
             >
@@ -177,13 +196,13 @@ describe('Comprehensive Feature Tests', () => {
       
       // Click increase button
       await act(async () => {
-        fireEvent.click(screen.getByTestId('increase-size'));
+        await userEvent.click(screen.getByTestId('increase-size'));
       });
       
       // Dispatch should be called with correct action
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'CHANGE_TEXT_SIZE',
+          type: CHANGE_TEXT_SIZE,
           payload: expect.objectContaining({
             id: testNote.id,
             size: 15
@@ -193,9 +212,6 @@ describe('Comprehensive Feature Tests', () => {
     });
     
     it('should test all task context menu operations work', async () => {
-      // Get the actual constants from the imported context
-      const { TOGGLE_TASK, SET_TASK_PRIORITY } = require('../context/BoardContext');
-      
       // Create a task to test with
       const testTask = {
         id: 'task-test',
@@ -275,9 +291,6 @@ describe('Comprehensive Feature Tests', () => {
   
   describe('Complex Board Interactions', () => {
     it('should test all board toolbar buttons work correctly', async () => {
-      // Get the actual constants from the imported context
-      const { ADD_NOTE, SAVE_VERSION, SET_SEARCH } = require('../context/BoardContext');
-      
       const TestBoard = () => (
         <div>
           <button 

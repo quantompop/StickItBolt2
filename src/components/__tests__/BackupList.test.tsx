@@ -4,6 +4,9 @@ import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import BackupList from '../BackupList';
 import * as backupService from '../../firebase/backup';
 
+// Define the LOAD_BOARD constant that would normally be imported
+const LOAD_BOARD = 'LOAD_BOARD';
+
 // Mock the backup service
 vi.mock('../../firebase/backup', () => ({
   getBoardBackups: vi.fn(),
@@ -11,9 +14,6 @@ vi.mock('../../firebase/backup', () => ({
   createBackup: vi.fn(),
   deleteBackup: vi.fn()
 }));
-
-// Manually define the constants that would be imported from BoardContext
-const LOAD_BOARD = 'LOAD_BOARD';
 
 // Mock the context
 vi.mock('../../context/BoardContext', () => {
