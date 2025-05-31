@@ -32,9 +32,13 @@ const initialState: BoardState = {
 const BoardContext = createContext<{
   state: BoardState;
   dispatch: React.Dispatch<any>;
+  syncNow: () => Promise<void>;
+  loadFromServer: () => Promise<void>;
 }>({
   state: initialState,
-  dispatch: () => null
+  dispatch: () => null,
+  syncNow: async () => {},
+  loadFromServer: async () => {}
 });
 
 // Action types
@@ -115,7 +119,8 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
     case LOAD_BOARD:
       return {
         ...action.payload,
-        lastSyncTime: Date.now()
+        lastSyncTime: Date.now(),
+        isSynced: true
       };
       
     case ADD_NOTE: {
@@ -1065,12 +1070,69 @@ const loadState = (): BoardState => {
 export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(boardReducer, loadState());
   const { state: authState } = useAuth();
+  const syncTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  
+  // Manual sync function
+  const syncNow = async () => {
+    if (!authState.isAuthenticated || !authState.user || !state.boardId) {
+      console.warn('Cannot sync: Not authenticated or missing boardId');
+      return;
+    }
+    
+    try {
+      console.log('Manually syncing board to Firebase...');
+      await saveBoardState(authState.user.id, state);
+      
+      // Update sync status
+      dispatch({
+        type: SYNC_BOARD
+      });
+      
+      console.log('Sync completed successfully!');
+    } catch (error) {
+      console.error('Error during manual sync:', error);
+      throw error;
+    }
+  };
+  
+  // Manual load from server function
+  const loadFromServer = async () => {
+    if (!authState.isAuthenticated || !authState.user || !state.boardId) {
+      console.warn('Cannot load from server: Not authenticated or missing boardId');
+      return;
+    }
+    
+    try {
+      console.log('Manually loading board from Firebase...');
+      const boardData = await getBoardState(state.boardId);
+      
+      if (boardData) {
+        // Load the board data from Firebase
+        dispatch({
+          type: LOAD_BOARD,
+          payload: boardData
+        });
+        console.log('Board loaded successfully from server!');
+      } else {
+        console.warn('No board data found on server.');
+      }
+    } catch (error) {
+      console.error('Error loading from server:', error);
+      throw error;
+    }
+  };
   
   // Sync with Firebase when user is authenticated and changes occur
   useEffect(() => {
+    if (syncTimeoutRef.current) {
+      clearTimeout(syncTimeoutRef.current);
+    }
+    
     const syncWithFirebase = async () => {
       if (authState.isAuthenticated && authState.user && state.boardId) {
         try {
+          console.log('Syncing with Firebase...', new Date().toLocaleTimeString());
+          
           // Save state to Firebase
           await saveBoardState(authState.user.id, state);
           
@@ -1078,6 +1140,8 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
           dispatch({
             type: SYNC_BOARD
           });
+          
+          console.log('Sync completed!', new Date().toLocaleTimeString());
         } catch (error) {
           console.error('Error syncing with Firebase:', error);
         }
@@ -1085,11 +1149,15 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     };
     
     // Debounce syncing to avoid too many writes
-    const syncTimeout = setTimeout(() => {
+    syncTimeoutRef.current = setTimeout(() => {
       syncWithFirebase();
     }, 2000);
     
-    return () => clearTimeout(syncTimeout);
+    return () => {
+      if (syncTimeoutRef.current) {
+        clearTimeout(syncTimeoutRef.current);
+      }
+    };
   }, [state.notes, state.archivedTasks, authState.isAuthenticated, authState.user]);
   
   // Load board from Firebase when user logs in
@@ -1097,18 +1165,30 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     const loadBoardFromFirebase = async () => {
       if (authState.isAuthenticated && authState.user && state.boardId) {
         try {
+          console.log('Loading board from Firebase...');
+          
           // Try to get existing board data
           const boardData = await getBoardState(state.boardId);
           
           if (boardData) {
+            console.log('Found board data in Firebase, loading...');
             // Load the board data from Firebase
             dispatch({
               type: LOAD_BOARD,
               payload: boardData
             });
+            console.log('Board loaded successfully from Firebase!');
+          } else {
+            console.log('No existing board data found, will create on next sync');
+            
+            // If no data exists on the server but we have local data, force an immediate sync
+            if (state.notes && state.notes.length > 0) {
+              console.log('Syncing local data to Firebase...');
+              await saveBoardState(authState.user.id, state);
+              dispatch({ type: SYNC_BOARD });
+              console.log('Local data synced to Firebase!');
+            }
           }
-          // If boardData is null, we'll just use the initial state which is fine
-          // No need to throw or handle an error
         } catch (error) {
           console.error('Error loading board from Firebase:', error);
           // If board doesn't exist yet, we'll create it on next sync
@@ -1137,6 +1217,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
             state.boardId, 
             state
           );
+          console.log("Automatic backup created successfully");
         } catch (error) {
           console.error('Error creating automatic backup:', error);
         }
@@ -1157,7 +1238,7 @@ export const BoardProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   }, [state.undoStack, authState.isAuthenticated, authState.user]);
   
   return (
-    <BoardContext.Provider value={{ state, dispatch }}>
+    <BoardContext.Provider value={{ state, dispatch, syncNow, loadFromServer }}>
       {children}
     </BoardContext.Provider>
   );

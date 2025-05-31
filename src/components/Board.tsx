@@ -14,6 +14,7 @@ import { signOut } from '../firebase/authService';
 import { NoteColor } from '../types';
 import AuthModal from './Auth/AuthModal';
 import UpdateManager from './UpdateManager';
+import SyncIndicator from './SyncIndicator';
 
 const Board: React.FC = () => {
   const { state, dispatch } = useBoard();
@@ -27,6 +28,7 @@ const Board: React.FC = () => {
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [showUpdateManager, setShowUpdateManager] = useState(false);
+  const [showSyncPanel, setShowSyncPanel] = useState(false);
   
   // Initialize the state to ensure it has expected properties
   useEffect(() => {
@@ -73,6 +75,7 @@ const Board: React.FC = () => {
     if (showGlobalSearch) setShowGlobalSearch(false);
     if (showVersionHistory) setShowVersionHistory(false);
     if (showBackups) setShowBackups(false);
+    if (showSyncPanel) setShowSyncPanel(false);
   };
   
   // Toggle version history panel
@@ -82,6 +85,7 @@ const Board: React.FC = () => {
     if (showGlobalSearch) setShowGlobalSearch(false);
     if (showArchive) setShowArchive(false);
     if (showBackups) setShowBackups(false);
+    if (showSyncPanel) setShowSyncPanel(false);
   };
 
   // Toggle backups panel
@@ -91,12 +95,24 @@ const Board: React.FC = () => {
     if (showGlobalSearch) setShowGlobalSearch(false);
     if (showArchive) setShowArchive(false);
     if (showVersionHistory) setShowVersionHistory(false);
+    if (showSyncPanel) setShowSyncPanel(false);
   };
   
   // Toggle global search panel
   const toggleGlobalSearch = () => {
     setShowGlobalSearch(!showGlobalSearch);
     // Close other panels
+    if (showArchive) setShowArchive(false);
+    if (showVersionHistory) setShowVersionHistory(false);
+    if (showBackups) setShowBackups(false);
+    if (showSyncPanel) setShowSyncPanel(false);
+  };
+
+  // Toggle sync panel
+  const toggleSyncPanel = () => {
+    setShowSyncPanel(!showSyncPanel);
+    // Close other panels
+    if (showGlobalSearch) setShowGlobalSearch(false);
     if (showArchive) setShowArchive(false);
     if (showVersionHistory) setShowVersionHistory(false);
     if (showBackups) setShowBackups(false);
@@ -436,6 +452,20 @@ const Board: React.FC = () => {
             </button>
           </div>
 
+          {/* Sync Button */}
+          <button 
+            className={`${
+              showSyncPanel 
+                ? 'bg-blue-100 text-blue-600' 
+                : 'bg-green-500 hover:bg-green-600 text-white'
+            } px-3 py-1.5 rounded flex items-center transition-colors toolbar-button`}
+            onClick={toggleSyncPanel}
+            aria-label="Sync with cloud"
+          >
+            <RefreshCw size={18} />
+            <span className="ml-1">Sync</span>
+          </button>
+
           {/* Update Manager Button - new button for update repository */}
           <button 
             className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
@@ -472,6 +502,34 @@ const Board: React.FC = () => {
           )}
         </div>
       </div>
+      
+      {/* Sync Panel */}
+      {showSyncPanel && (
+        <div className="absolute top-14 right-0 bg-white shadow-lg z-20 p-4 w-80 rounded-l-lg border-l border-t border-b border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-medium">Cloud Sync</h2>
+            <button 
+              className="text-gray-500 hover:text-gray-700"
+              onClick={toggleSyncPanel}
+              aria-label="Close"
+            >
+              <X size={18} />
+            </button>
+          </div>
+          
+          <SyncIndicator />
+
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded">
+            <h3 className="text-sm font-medium text-blue-800 mb-1">Sync Help</h3>
+            <ul className="text-xs text-blue-700 list-disc pl-5 space-y-1">
+              <li>Use <strong>Push to Cloud</strong> to upload your notes from this device</li>
+              <li>Use <strong>Pull from Cloud</strong> to download notes from another device</li>
+              <li>Sign in with the same account on all your devices</li>
+              <li>Changes sync automatically every few minutes</li>
+            </ul>
+          </div>
+        </div>
+      )}
       
       {/* Global Search Panel */}
       {showGlobalSearch && (
@@ -652,7 +710,7 @@ const Board: React.FC = () => {
 
       {/* Update Manager Modal */}
       {showUpdateManager && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\" role="dialog\" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true">
           <div className="relative">
             <UpdateManager onClose={() => setShowUpdateManager(false)} />
           </div>

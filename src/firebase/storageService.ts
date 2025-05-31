@@ -20,9 +20,12 @@ export const saveBoardState = async (userId: string, boardState: BoardState) => 
       userId,
       lastUpdated: new Date().toISOString()
     };
+
+    console.log(`Saving board ${boardState.boardId} to Firestore for user ${userId}`);
     
     // Save the board data
     await setDoc(boardRef, boardData, { merge: true });
+    console.log(`Board ${boardState.boardId} saved successfully`);
     
     return boardState.boardId;
   } catch (error) {
@@ -34,13 +37,16 @@ export const saveBoardState = async (userId: string, boardState: BoardState) => 
 // Get board state from Firestore
 export const getBoardState = async (boardId: string) => {
   try {
+    console.log(`Fetching board ${boardId} from Firestore`);
     const boardRef = doc(db, 'boards', boardId);
     const boardSnap = await getDoc(boardRef);
     
     if (boardSnap.exists()) {
+      console.log(`Found board ${boardId} in Firestore`);
       return boardSnap.data() as BoardState;
     } else {
       // Return null instead of throwing an error
+      console.log(`Board ${boardId} not found in Firestore`);
       return null;
     }
   } catch (error) {
@@ -52,6 +58,7 @@ export const getBoardState = async (boardId: string) => {
 // Get all boards for a user
 export const getUserBoards = async (userId: string) => {
   try {
+    console.log(`Fetching all boards for user ${userId}`);
     const boardsQuery = query(collection(db, 'boards'), where('userId', '==', userId));
     const boardsSnap = await getDocs(boardsQuery);
     
@@ -60,6 +67,7 @@ export const getUserBoards = async (userId: string) => {
       boards.push(doc.data() as BoardState);
     });
     
+    console.log(`Found ${boards.length} boards for user ${userId}`);
     return boards;
   } catch (error) {
     console.error("Error getting user boards:", error);
@@ -70,7 +78,9 @@ export const getUserBoards = async (userId: string) => {
 // Delete a board
 export const deleteBoard = async (boardId: string) => {
   try {
+    console.log(`Deleting board ${boardId}`);
     await deleteDoc(doc(db, 'boards', boardId));
+    console.log(`Board ${boardId} deleted successfully`);
     return true;
   } catch (error) {
     console.error("Error deleting board:", error);
@@ -81,6 +91,7 @@ export const deleteBoard = async (boardId: string) => {
 // Update a specific note in a board
 export const updateNote = async (boardId: string, noteId: string, noteData: Partial<Note>) => {
   try {
+    console.log(`Updating note ${noteId} in board ${boardId}`);
     // Get the current board
     const boardRef = doc(db, 'boards', boardId);
     const boardSnap = await getDoc(boardRef);
@@ -102,6 +113,7 @@ export const updateNote = async (boardId: string, noteId: string, noteData: Part
       lastUpdated: new Date().toISOString()
     });
     
+    console.log(`Note ${noteId} updated successfully`);
     return true;
   } catch (error) {
     console.error("Error updating note:", error);
