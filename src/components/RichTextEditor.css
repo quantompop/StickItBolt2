@@ -1,0 +1,56 @@
+/* Custom styles for the Draft.js editor */
+
+.rich-text-editor {
+  min-height: 80px;
+  overflow: hidden;
+}
+
+.rich-text-editor .toolbar {
+  user-select: none;
+}
+
+.rich-text-editor .editor-container {
+  min-height: 50px;
+}
+
+.rich-text-editor .public-DraftEditor-content {
+  min-height: 50px;
+}
+
+.rich-text-editor .public-DraftEditorPlaceholder-root {
+  color: #6b7280;
+  position: absolute;
+  pointer-events: none;
+}
+
+/* Style for different inline styles */
+.rich-text-editor .public-DraftStyleDefault-block {
+  margin: 0.5em 0;
+}
+
+/* Custom styles for inline styling */
+.rich-text-editor .BOLD {
+  font-weight: bold;
+}
+
+.rich-text-editor .ITALIC {
+  font-style: italic;
+}
+
+.rich-text-editor .UNDERLINE {
+  text-decoration: underline;
+}
+
+.rich-text-editor .CODE {
+  font-family: monospace;
+  background-color: #f1f1f1;
+  padding: 0 0.2em;
+  border-radius: 3px;
+}
+
+/* Mobile-friendly tweaks */
+@media (max-width: 640px) {
+  .rich-text-editor .toolbar button {
+    padding: 8px;
+  }
+}

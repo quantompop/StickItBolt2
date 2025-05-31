@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
-import { Note, Task, BoardState, ArchivedTask, VersionSnapshot, TaskPriority, RecurrencePattern } from '../types';
+import { Note, Task, BoardState, ArchivedTask, VersionSnapshot, TaskPriority, RecurrencePattern, Attachment } from '../types';
 import { generateId } from '../utils/helpers';
 import { useAuth } from './AuthContext';
 import { saveBoardState, getBoardState } from '../firebase/storageService';
@@ -65,6 +65,9 @@ export const SET_TASK_RECURRENCE = 'SET_TASK_RECURRENCE';
 export const UNDO = 'UNDO';
 export const SYNC_BOARD = 'SYNC_BOARD';
 export const LOAD_BOARD = 'LOAD_BOARD';
+export const ADD_ATTACHMENT = 'ADD_ATTACHMENT';
+export const REMOVE_ATTACHMENT = 'REMOVE_ATTACHMENT';
+export const UPDATE_TASK_RICH_TEXT = 'UPDATE_TASK_RICH_TEXT';
 
 // Create a version snapshot
 const createVersionSnapshot = (state: BoardState, description: string): VersionSnapshot => {
@@ -324,6 +327,37 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
       const snapshot = createVersionSnapshot(
         newState, 
         `${action_description}: ${taskText.substring(0, 20)}${taskText.length > 20 ? '...' : ''}`
+      );
+      newState.versionHistory = [...(state.versionHistory || []), snapshot];
+      
+      return newState;
+    }
+    
+    case UPDATE_TASK_RICH_TEXT: {
+      const { noteId, taskId, richText } = action.payload;
+      
+      newState = {
+        ...state,
+        notes: (state.notes || []).map(note => 
+          note.id === noteId
+            ? {
+                ...note,
+                tasks: (note.tasks || []).map(task => 
+                  task.id === taskId ? { ...task, richText } : task
+                )
+              }
+            : note
+        ),
+        undoStack: addToUndoStack(state, action)
+      };
+      
+      // Create a version snapshot
+      const noteTitle = (state.notes || []).find(note => note.id === noteId)?.title;
+      const taskText = (state.notes || []).find(note => note.id === noteId)?.tasks.find(task => task.id === taskId)?.text || 'Unknown';
+      
+      const snapshot = createVersionSnapshot(
+        newState, 
+        `Updated rich text for task in ${noteTitle || 'Unknown'}: ${taskText.substring(0, 20)}${taskText.length > 20 ? '...' : ''}`
       );
       newState.versionHistory = [...(state.versionHistory || []), snapshot];
       
@@ -630,6 +664,60 @@ export const boardReducer = (state: BoardState = initialState, action: any): Boa
       };
       
       // We don't create a version snapshot for spacing changes to avoid cluttering history
+      return newState;
+    }
+    
+    case ADD_ATTACHMENT: {
+      const { noteId, attachment } = action.payload;
+      
+      newState = {
+        ...state,
+        notes: (state.notes || []).map(note => 
+          note.id === noteId
+            ? {
+                ...note,
+                attachments: [...(note.attachments || []), attachment]
+              }
+            : note
+        ),
+        undoStack: addToUndoStack(state, action)
+      };
+      
+      // Create a version snapshot
+      const noteTitle = (state.notes || []).find(note => note.id === noteId)?.title;
+      const snapshot = createVersionSnapshot(newState, `Added attachment "${attachment.name}" to note: ${noteTitle || 'Unknown'}`);
+      newState.versionHistory = [...(state.versionHistory || []), snapshot];
+      
+      return newState;
+    }
+    
+    case REMOVE_ATTACHMENT: {
+      const { noteId, attachmentId } = action.payload;
+      
+      // Find the attachment for the version history description
+      const note = (state.notes || []).find(n => n.id === noteId);
+      const attachment = note?.attachments?.find(a => a.id === attachmentId);
+      
+      newState = {
+        ...state,
+        notes: (state.notes || []).map(note => 
+          note.id === noteId
+            ? {
+                ...note,
+                attachments: (note.attachments || []).filter(att => att.id !== attachmentId)
+              }
+            : note
+        ),
+        undoStack: addToUndoStack(state, action)
+      };
+      
+      // Create a version snapshot
+      const snapshot = createVersionSnapshot(
+        newState, 
+        `Removed attachment "${attachment?.name || 'Unknown'}" from note: ${note?.title || 'Unknown'}`
+      );
+      newState.versionHistory = [...(state.versionHistory || []), snapshot];
+      
       return newState;
     }
     

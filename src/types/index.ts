@@ -10,6 +10,7 @@ export interface Task {
   priority: TaskPriority;
   recurrence?: RecurrencePattern; // Optional recurrence pattern
   dueDate?: string; // Optional due date in ISO format
+  richText?: string; // Optional rich text content in Draft.js format
 }
 
 export interface RecurrencePattern {

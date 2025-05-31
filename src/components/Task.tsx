@@ -2,14 +2,17 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Task as TaskType, TaskPriority, RecurrencePattern } from '../types';
 import { 
   Check, Trash, Edit, ChevronRight, GripVertical, Flag, X, 
-  Repeat, Calendar
+  Repeat, Calendar, FileText
 } from 'lucide-react';
 import { 
   useBoard, TOGGLE_TASK, DELETE_TASK, UPDATE_TASK, 
   INDENT_TASK, SET_DRAGGED_TASK, REORDER_TASK, 
-  MOVE_TASK, SET_TASK_PRIORITY, SET_TASK_RECURRENCE
+  MOVE_TASK, SET_TASK_PRIORITY, SET_TASK_RECURRENCE,
+  UPDATE_TASK_RICH_TEXT
 } from '../context/BoardContext';
 import RecurrenceSelector from './RecurrenceSelector';
+import RichTextEditor from './RichTextEditor';
+import RichTextView from './RichTextView';
 
 interface TaskProps {
   task: TaskType;
@@ -21,6 +24,7 @@ interface TaskProps {
 const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   const { state, dispatch } = useBoard();
   const [isEditing, setIsEditing] = useState(false);
+  const [isRichEditing, setIsRichEditing] = useState(false);
   const [taskText, setTaskText] = useState(task.text);
   const [showMenu, setShowMenu] = useState(false);
   const [showPriorityMenu, setShowPriorityMenu] = useState(false);
@@ -29,6 +33,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   const menuRef = useRef<HTMLDivElement>(null);
   const priorityMenuRef = useRef<HTMLDivElement>(null);
   const recurrenceSelectorRef = useRef<HTMLDivElement>(null);
+  const richEditorRef = useRef<HTMLDivElement>(null);
   const taskRef = useRef<HTMLDivElement>(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
   
@@ -99,11 +104,19 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   // Start editing task
   const handleEdit = () => {
     setIsEditing(true);
+    setIsRichEditing(false);
     setShowMenu(false);
     setTimeout(() => {
       inputRef.current?.focus();
       inputRef.current?.select(); // Select all text when editing starts
     }, 0);
+  };
+
+  // Start rich text editing
+  const handleRichEdit = () => {
+    setIsRichEditing(true);
+    setIsEditing(false);
+    setShowMenu(false);
   };
   
   // Save task changes
@@ -117,6 +130,18 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
       });
     }
     setIsEditing(false);
+  };
+
+  // Save rich text changes
+  const handleRichTextSave = (richText: string) => {
+    if (!task || !task.id) return;
+    
+    dispatch({
+      type: UPDATE_TASK_RICH_TEXT,
+      payload: { noteId, taskId: task.id, richText }
+    });
+    
+    setIsRichEditing(false);
   };
   
   // Handle key presses during editing
@@ -171,14 +196,20 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
       const isClickInsideMenu = menuRef.current?.contains(target);
       const isClickInsidePriorityMenu = priorityMenuRef.current?.contains(target);
       const isClickInsideRecurrenceSelector = recurrenceSelectorRef.current?.contains(target);
+      const isClickInsideRichEditor = richEditorRef.current?.contains(target);
       const isClickInsideTask = taskRef.current?.contains(target);
 
       // Only close menus if the click is outside all menus and the task
       if (!isClickInsideMenu && !isClickInsidePriorityMenu && 
-          !isClickInsideRecurrenceSelector && !isClickInsideTask) {
+          !isClickInsideRecurrenceSelector && !isClickInsideRichEditor && !isClickInsideTask) {
         setShowMenu(false);
         setShowPriorityMenu(false);
         setShowRecurrenceSelector(false);
+        
+        // Also save and close editing if clicking outside
+        if (isRichEditing && task.richText) {
+          setIsRichEditing(false);
+        }
       }
     };
     
@@ -186,7 +217,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [isRichEditing, task.richText]);
   
   // Ensure menu stays within viewport bounds
   useEffect(() => {
@@ -287,6 +318,17 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
       </span>
     );
   };
+
+  // Render rich text icon if task has rich text
+  const renderRichTextIcon = () => {
+    if (!task || !task.richText) return null;
+    
+    return (
+      <span className="mr-2 text-green-500">
+        <FileText size={14} />
+      </span>
+    );
+  };
   
   // Find all subtasks for a given task
   const findSubtasks = (tasks: TaskType[], parentIndex: number, parentIndentation: number) => {
@@ -305,7 +347,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   // Drag handling
   const handleDragStart = (e: React.DragEvent) => {
     // Don't allow drag if we're editing
-    if (isEditing) {
+    if (isEditing || isRichEditing) {
       e.preventDefault();
       return;
     }
@@ -370,7 +412,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
   
   const handleDragOver = (e: React.DragEvent) => {
     // Don't process drag events if we're editing
-    if (isEditing) {
+    if (isEditing || isRichEditing) {
       e.preventDefault();
       return;
     }
@@ -409,7 +451,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
     e.preventDefault();
     
     // Don't process drop events if we're editing
-    if (isEditing) return;
+    if (isEditing || isRichEditing) return;
     
     // Remove visual indicators
     if (taskRef.current) {
@@ -541,7 +583,7 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
         fontSize: `${textSize}px`
       }}
       onContextMenu={toggleMenu}
-      draggable={!isEditing} // Only draggable when not editing
+      draggable={!isEditing && !isRichEditing} // Only draggable when not editing
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragOver={handleDragOver}
@@ -580,12 +622,25 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
           onMouseDown={(e) => e.stopPropagation()} // Prevent event bubbling for mouse events
           draggable={false} // Ensure the input isn't draggable
         />
+      ) : isRichEditing ? (
+        <div 
+          ref={richEditorRef} 
+          className="ml-2 flex-grow w-full"
+          onClick={(e) => e.stopPropagation()} // Prevent event bubbling
+          onMouseDown={(e) => e.stopPropagation()} // Prevent event bubbling
+        >
+          <RichTextEditor 
+            content={task.richText || task.text}
+            onChange={(content) => handleRichTextSave(content)}
+            onBlur={() => setIsRichEditing(false)}
+          />
+        </div>
       ) : (
         <div 
           className={`ml-2 flex-grow py-0.5 flex items-center ${
             task.completed ? 'line-through text-gray-500' : ''
           }`}
-          onClick={handleEdit}
+          onClick={task.richText ? handleRichEdit : handleEdit}
           style={{ fontSize: `${textSize}px` }}
         >
           {/* Display priority flag before task text */}
@@ -594,14 +649,24 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
           {/* Display recurrence icon if task is recurring */}
           {renderRecurrenceIcon()}
           
-          {task.text}
+          {/* Display rich text icon if task has rich text */}
+          {renderRichTextIcon()}
+          
+          {task.richText ? (
+            <RichTextView 
+              content={task.richText}
+              className="inline"
+            />
+          ) : (
+            task.text
+          )}
         </div>
       )}
       
       <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
         <button
           className="ml-2 text-gray-500 hover:text-blue-600 transition-colors"
-          onClick={handleEdit}
+          onClick={task.richText ? handleRichEdit : handleEdit}
           aria-label="Edit task"
         >
           <Edit size={14} />
@@ -630,11 +695,19 @@ const Task: React.FC<TaskProps> = ({ task, noteId, index, textSize }) => {
           </button>
           <button 
             className="flex items-center w-full px-4 py-1.5 text-left hover:bg-gray-100"
-            onClick={handleEdit}
+            onClick={task.richText ? handleRichEdit : handleEdit}
             type="button"
           >
             <Edit size={14} className="mr-2" />
             Edit task
+          </button>
+          <button 
+            className="flex items-center w-full px-4 py-1.5 text-left hover:bg-gray-100"
+            onClick={handleRichEdit}
+            type="button"
+          >
+            <FileText size={14} className="mr-2" />
+            {task.richText ? 'Edit rich formatting' : 'Use rich formatting'}
           </button>
           <div className="relative">
             <button 

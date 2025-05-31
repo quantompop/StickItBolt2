@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Note as NoteType, NoteColor } from '../types';
-import { X, MoreVertical, Plus, Trash, Edit, Palette, Type, AlignJustify, Search } from 'lucide-react';
+import { X, MoreVertical, Plus, Trash, Edit, Palette, Type, AlignJustify, Search, PaperClip } from 'lucide-react';
 import Task from './Task';
 import ColorPicker from './ColorPicker';
 import SliderControl from './SliderControl';
+import FileAttachments from './FileAttachments';
 import { 
   useBoard, 
   DELETE_NOTE, 
@@ -30,6 +31,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
   const [showTextSizeControls, setShowTextSizeControls] = useState(false);
   const [showSpacingControls, setShowSpacingControls] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [showAttachments, setShowAttachments] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [title, setTitle] = useState(note.title);
   const [newTask, setNewTask] = useState('');
@@ -203,6 +205,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
     setShowTextSizeControls(false);
     setShowSpacingControls(false);
     setShowSearch(false);
+    setShowAttachments(false);
   };
   
   // Start editing the title
@@ -476,6 +479,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
                 setShowTextSizeControls(false);
                 setShowSpacingControls(false);
                 setShowSearch(false);
+                setShowAttachments(false);
               }}
             >
               <Palette size={14} className="mr-2" />
@@ -488,6 +492,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
                 setShowColorPicker(false);
                 setShowSpacingControls(false);
                 setShowSearch(false);
+                setShowAttachments(false);
               }}
             >
               <Type size={14} className="mr-2" />
@@ -500,6 +505,7 @@ const Note: React.FC<NoteProps> = ({ note }) => {
                 setShowColorPicker(false);
                 setShowTextSizeControls(false);
                 setShowSearch(false);
+                setShowAttachments(false);
               }}
             >
               <AlignJustify size={14} className="mr-2" />
@@ -512,10 +518,24 @@ const Note: React.FC<NoteProps> = ({ note }) => {
                 setShowColorPicker(false);
                 setShowTextSizeControls(false);
                 setShowSpacingControls(false);
+                setShowAttachments(false);
               }}
             >
               <Search size={14} className="mr-2" />
               Search in note
+            </button>
+            <button 
+              className="flex items-center w-full px-4 py-1.5 text-left hover:bg-gray-100 text-gray-700"
+              onClick={() => {
+                setShowAttachments(true);
+                setShowSearch(false);
+                setShowColorPicker(false);
+                setShowTextSizeControls(false);
+                setShowSpacingControls(false);
+              }}
+            >
+              <PaperClip size={14} className="mr-2" />
+              Attachments
             </button>
             <button 
               className="flex items-center w-full px-4 py-1.5 text-left hover:bg-gray-100 text-red-600"
@@ -628,6 +648,32 @@ const Note: React.FC<NoteProps> = ({ note }) => {
             </div>
           </div>
         )}
+
+        {/* Attachments Panel */}
+        {showAttachments && (
+          <div 
+            className="fixed z-50 bg-white rounded shadow-lg p-3 w-72 context-menu"
+            style={{
+              top: menuPosition.y + 'px',
+              left: menuPosition.x + 'px'
+            }}
+          >
+            <div className="flex justify-between items-center mb-2">
+              <div className="font-medium text-gray-700">Attachments</div>
+              <button
+                onClick={() => setShowAttachments(false)}
+                className="text-gray-500 hover:text-gray-700"
+                aria-label="Close"
+              >
+                <X size={14} />
+              </button>
+            </div>
+            <FileAttachments 
+              noteId={note.id} 
+              attachments={note.attachments || []} 
+            />
+          </div>
+        )}
       </div>
       
       {/* Note Content */}
@@ -649,6 +695,28 @@ const Note: React.FC<NoteProps> = ({ note }) => {
               aria-label="Clear search"
             >
               <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* Attachments Indicator */}
+        {note.attachments && note.attachments.length > 0 && (
+          <div 
+            className="mb-2 px-2 py-1 bg-green-50 border border-green-100 rounded-md text-sm flex justify-between items-center cursor-pointer"
+            onClick={() => {
+              setShowAttachments(true);
+              setShowMenu(true);
+            }}
+          >
+            <span className="flex items-center">
+              <PaperClip size={14} className="mr-1 text-green-600" />
+              {note.attachments.length} attachment{note.attachments.length !== 1 ? 's' : ''}
+            </span>
+            <button 
+              className="text-green-600 hover:text-green-800"
+              aria-label="Manage attachments"
+            >
+              <MoreVertical size={14} />
             </button>
           </div>
         )}
@@ -691,6 +759,22 @@ const Note: React.FC<NoteProps> = ({ note }) => {
             aria-label="Add task"
           >
             <Plus size={18} />
+          </button>
+        </div>
+
+        {/* Quick Attachments Button */}
+        <div className="mt-2">
+          <button
+            className="text-sm text-blue-500 hover:text-blue-700 flex items-center"
+            onClick={() => {
+              setShowAttachments(true);
+              setShowMenu(true);
+            }}
+          >
+            <PaperClip size={14} className="mr-1" />
+            {note.attachments && note.attachments.length > 0 
+              ? `Manage attachments (${note.attachments.length})` 
+              : 'Add attachments'}
           </button>
         </div>
       </div>
