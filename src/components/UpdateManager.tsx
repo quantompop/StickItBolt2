@@ -18,7 +18,7 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
         try {
           const repo = await window.electronAPI.getUpdateRepository();
           setCurrentRepo(repo);
-          if (repo.repoUrl) {
+          if (repo && repo.repoUrl) {
             setRepoUrl(repo.repoUrl);
           }
         } catch (err) {
