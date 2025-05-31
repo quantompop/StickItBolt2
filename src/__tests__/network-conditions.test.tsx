@@ -17,7 +17,7 @@ vi.mock('firebase/firestore', async () => {
 });
 
 describe('Network Conditions Tests', () => {
-  // Setup user-event
+  // Setup user-event for more realistic interactions
   const user = userEvent.setup();
   
   beforeEach(() => {
@@ -154,34 +154,49 @@ describe('Network Conditions Tests', () => {
   
   describe('Network Error Handling', () => {
     it('should handle and recover from network errors', async () => {
-      // Create a component that handles network errors
+      // Create a component that handles network errors with proper retry logic
       const NetworkErrorHandlingComponent = () => {
         const [status, setStatus] = useState('idle');
         const [retryCount, setRetryCount] = useState(0);
         const [data, setData] = useState(null);
+        const [error, setError] = useState(null);
         
+        // Function that simulates a network request that might fail
         const fetchWithError = async () => {
+          setError(null);
           setStatus('loading');
           
           try {
-            // Simulate network error for the initial attempt
+            // First attempt will fail if retry count is 0
             if (retryCount === 0) {
               throw new Error('Network error');
             }
             
-            // Successful response after retry
-            const result = { success: true, message: 'Data loaded successfully on retry' };
+            // Success on retry
+            const result = { 
+              success: true, 
+              message: 'Data loaded successfully on retry' 
+            };
+            
             setData(result);
             setStatus('success');
-          } catch (error) {
-            console.error('Network error:', error);
+            return result;
+          } catch (err) {
+            console.error('Network error:', err);
+            setError(err);
             setStatus('error');
+            throw err;
           }
         };
         
+        // Retry handler
         const handleRetry = async () => {
           setRetryCount(prev => prev + 1);
-          await fetchWithError();
+          try {
+            await fetchWithError();
+          } catch (err) {
+            // Error is already handled in fetchWithError
+          }
         };
         
         return (
@@ -207,7 +222,7 @@ describe('Network Conditions Tests', () => {
               </div>
             )}
             
-            {data && status === 'success' && (
+            {data && (
               <div data-testid="data-display">
                 {data.message}
               </div>

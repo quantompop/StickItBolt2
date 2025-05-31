@@ -2,11 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React, { useState, useEffect } from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { boardReducer } from '../context/BoardContext';
-import { BoardProvider } from '../context/BoardContext';
-import { AuthProvider } from '../context/AuthContext';
-import { saveBoardState, getBoardState } from '../firebase/storageService';
 import { BoardState } from '../types';
+import { saveBoardState, getBoardState } from '../firebase/storageService';
 
 // Mock Firebase services
 vi.mock('../firebase/storageService', () => ({
@@ -86,16 +83,15 @@ describe('Offline Operation Tests', () => {
     // Mock navigator.onLine
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
     
-    // Suppress console.error messages during tests
-    vi.spyOn(console, 'error').mockImplementation(() => {});
+    // Reset localStorage mock
+    localStorageMock.getItem.mockReturnValue(JSON.stringify(createTestState()));
+    
+    // Ensure the saveBoardState mock is reset
+    vi.mocked(saveBoardState).mockClear();
   });
   
   describe('Offline Data Persistence', () => {
     it('should save changes to localStorage when offline', async () => {
-      // Set up initial state in localStorage
-      const initialState = JSON.stringify(createTestState());
-      localStorageMock.getItem.mockReturnValue(initialState);
-      
       // Mock network as offline
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
       
@@ -116,39 +112,46 @@ describe('Offline Operation Tests', () => {
             tasks: [...prevNote.tasks, { id: 'new-task', text: 'Offline created task' }]
           }));
           
+          // Get current state from localStorage
+          const currentState = JSON.parse(localStorage.getItem('stickitState') || '{}');
+          
+          // Update state with new task
+          const updatedState = {
+            ...currentState,
+            notes: currentState.notes.map(n => 
+              n.id === 'note-1' ? {
+                ...n,
+                tasks: [
+                  ...n.tasks,
+                  { 
+                    id: 'new-task', 
+                    text: 'Offline created task',
+                    completed: false,
+                    indentation: 0,
+                    priority: 'none'
+                  }
+                ]
+              } : n
+            )
+          };
+          
           // Save to localStorage
-          const currentStateString = localStorage.getItem('stickitState') || '{}';
-          const currentState = JSON.parse(currentStateString);
+          localStorage.setItem('stickitState', JSON.stringify(updatedState));
           
-          if (currentState && currentState.notes && currentState.notes.length > 0) {
-            const updatedState = {
-              ...currentState,
-              notes: [{
-                ...currentState.notes[0],
-                tasks: [...currentState.notes[0].tasks, { 
-                  id: 'new-task', 
-                  text: 'Offline created task',
-                  completed: false,
-                  indentation: 0,
-                  priority: 'none'
-                }]
-              }]
-            };
-            localStorage.setItem('stickitState', JSON.stringify(updatedState));
-          }
-          
-          // Try to sync with server (will fail)
-          saveBoardState('test-user', currentState as any).catch(err => {
+          // Try to sync with server (will fail due to being offline)
+          saveBoardState('test-user', updatedState).catch(err => {
             console.error('Failed to sync:', err);
           });
         };
         
         return (
           <div>
-            <div>{note.title}</div>
-            {note.tasks.map(task => (
-              <div key={task.id}>{task.text}</div>
-            ))}
+            <div data-testid="note-title">{note.title}</div>
+            <div data-testid="tasks-container">
+              {note.tasks.map(task => (
+                <div key={task.id} data-testid={`task-${task.id}`}>{task.text}</div>
+              ))}
+            </div>
             <button onClick={addTask} data-testid="add-task-button">Add Task</button>
           </div>
         );
@@ -157,7 +160,8 @@ describe('Offline Operation Tests', () => {
       render(<OfflineComponent />);
       
       // Wait for the component to load
-      expect(screen.getByText('Offline Test Note')).toBeInTheDocument();
+      expect(screen.getByTestId('note-title')).toHaveTextContent('Offline Test Note');
+      expect(screen.getByTestId('tasks-container').children.length).toBe(1);
       
       // Add a task while offline
       await act(async () => {
@@ -167,16 +171,20 @@ describe('Offline Operation Tests', () => {
       // The state should be saved to localStorage despite the network error
       expect(localStorageMock.setItem).toHaveBeenCalled();
       expect(saveBoardState).toHaveBeenCalled(); // It tries but fails
+      
+      // UI should reflect the added task
+      expect(screen.getByTestId('tasks-container').children.length).toBe(2);
+      expect(screen.getByTestId('task-new-task')).toBeInTheDocument();
     });
     
     it('should sync local changes when coming back online', async () => {
-      // Initial state with a note
-      const initialState = createTestState();
-      localStorageMock.getItem.mockReturnValue(JSON.stringify(initialState));
-      
       // Mock network as offline initially
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
-      vi.mocked(saveBoardState).mockRejectedValue(new Error('Network error'));
+      
+      // Setup saveBoardState mock
+      vi.mocked(saveBoardState)
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce('test-board');
       
       // Create a simple component for testing
       const OnlineOfflineComponent = () => {
@@ -188,7 +196,14 @@ describe('Offline Operation Tests', () => {
         });
         
         useEffect(() => {
-          const handleOnline = () => setIsOnline(true);
+          const handleOnline = () => {
+            setIsOnline(true);
+            
+            // Force an immediate sync when going online
+            const currentState = JSON.parse(localStorage.getItem('stickitState') || '{}');
+            saveBoardState('test-user', currentState);
+          };
+          
           const handleOffline = () => setIsOnline(false);
           
           window.addEventListener('online', handleOnline);
@@ -207,45 +222,51 @@ describe('Offline Operation Tests', () => {
           }));
           
           // Save to localStorage
-          const currentStateString = localStorage.getItem('stickitState') || '{}';
-          const currentState = JSON.parse(currentStateString);
+          const currentState = JSON.parse(localStorage.getItem('stickitState') || '{}');
           
-          if (currentState && currentState.notes && currentState.notes.length > 0) {
-            const updatedState = {
-              ...currentState,
-              notes: [{
-                ...currentState.notes[0],
-                tasks: [...currentState.notes[0].tasks, { 
-                  id: 'local-task', 
-                  text: 'Sync me when online',
-                  completed: false,
-                  indentation: 0,
-                  priority: 'none'
-                }]
-              }]
-            };
-            localStorage.setItem('stickitState', JSON.stringify(updatedState));
-          }
+          const updatedState = {
+            ...currentState,
+            notes: currentState.notes.map(n => 
+              n.id === 'note-1' ? {
+                ...n,
+                tasks: [
+                  ...n.tasks, 
+                  { 
+                    id: 'local-task', 
+                    text: 'Sync me when online',
+                    completed: false,
+                    indentation: 0,
+                    priority: 'none'
+                  }
+                ]
+              } : n
+            )
+          };
           
-          // Try to sync with server
+          localStorage.setItem('stickitState', JSON.stringify(updatedState));
+          
+          // Try to sync with server (will fail if offline)
           if (isOnline) {
-            saveBoardState('test-user', currentState as any);
+            saveBoardState('test-user', updatedState);
           }
         };
         
         const goOnline = () => {
+          // Update the navigator.onLine mock
           vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
-          vi.mocked(saveBoardState).mockResolvedValue('test-board');
+          // Dispatch the online event
           window.dispatchEvent(new Event('online'));
         };
         
         return (
           <div>
             <div data-testid="connection-status">Status: {isOnline ? 'Online' : 'Offline'}</div>
-            <div>{note.title}</div>
-            {note.tasks.map(task => (
-              <div key={task.id}>{task.text}</div>
-            ))}
+            <div data-testid="note-title">{note.title}</div>
+            <div data-testid="tasks-container">
+              {note.tasks.map(task => (
+                <div key={task.id} data-testid={`task-${task.id}`}>{task.text}</div>
+              ))}
+            </div>
             <button onClick={addTask} data-testid="add-task-button">Add Task</button>
             <button onClick={goOnline} data-testid="go-online-button">Go Online</button>
           </div>
@@ -255,12 +276,17 @@ describe('Offline Operation Tests', () => {
       render(<OnlineOfflineComponent />);
       
       // Wait for the component to load
-      expect(screen.getByText('Offline Test Note')).toBeInTheDocument();
+      expect(screen.getByTestId('note-title')).toHaveTextContent('Offline Test Note');
+      expect(screen.getByTestId('connection-status')).toHaveTextContent('Status: Offline');
       
       // Add a task while offline
       await act(async () => {
         await userEvent.click(screen.getByTestId('add-task-button'));
       });
+      
+      // UI should reflect the added task
+      expect(screen.getByTestId('tasks-container').children.length).toBe(2);
+      expect(screen.getByTestId('task-local-task')).toBeInTheDocument();
       
       // Go online
       await act(async () => {
@@ -302,7 +328,10 @@ describe('Offline Operation Tests', () => {
       
       // First, simulate being offline
       vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(false);
-      vi.mocked(saveBoardState).mockRejectedValue(new Error('Network error'));
+      vi.mocked(saveBoardState)
+        .mockRejectedValueOnce(new Error('Network error'))
+        .mockResolvedValueOnce('test-board');
+        
       vi.mocked(getBoardState).mockResolvedValue(serverState);
       
       // Create a simple component for testing
@@ -315,7 +344,14 @@ describe('Offline Operation Tests', () => {
         });
         
         useEffect(() => {
-          const handleOnline = () => setIsOnline(true);
+          const handleOnline = () => {
+            setIsOnline(true);
+            
+            // Force a sync when going online
+            const currentState = JSON.parse(localStorage.getItem('stickitState') || '{}');
+            saveBoardState('test-user', currentState);
+          };
+          
           const handleOffline = () => setIsOnline(false);
           
           window.addEventListener('online', handleOnline);
@@ -334,40 +370,44 @@ describe('Offline Operation Tests', () => {
           }));
           
           // Save to localStorage
-          const currentStateString = localStorage.getItem('stickitState') || '{}';
-          const currentState = JSON.parse(currentStateString);
+          const currentState = JSON.parse(localStorage.getItem('stickitState') || '{}');
           
-          if (currentState && currentState.notes && currentState.notes.length > 0) {
-            const updatedState = {
-              ...currentState,
-              notes: [{
-                ...currentState.notes[0],
-                tasks: [...currentState.notes[0].tasks, { 
-                  id: 'local-task', 
-                  text: 'Task created offline',
-                  completed: false,
-                  indentation: 0,
-                  priority: 'none'
-                }]
-              }]
-            };
-            localStorage.setItem('stickitState', JSON.stringify(updatedState));
-          }
+          const updatedState = {
+            ...currentState,
+            notes: currentState.notes.map(n => 
+              n.id === 'note-1' ? {
+                ...n,
+                tasks: [
+                  ...n.tasks,
+                  { 
+                    id: 'local-task', 
+                    text: 'Task created offline',
+                    completed: false,
+                    indentation: 0,
+                    priority: 'none'
+                  }
+                ]
+              } : n
+            )
+          };
+          
+          localStorage.setItem('stickitState', JSON.stringify(updatedState));
         };
         
         const goOnline = () => {
           vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
-          vi.mocked(saveBoardState).mockResolvedValue('test-board');
           window.dispatchEvent(new Event('online'));
         };
         
         return (
           <div>
             <div data-testid="connection-status">Status: {isOnline ? 'Online' : 'Offline'}</div>
-            <div>{note.title}</div>
-            {note.tasks.map(task => (
-              <div key={task.id}>{task.text}</div>
-            ))}
+            <div data-testid="note-title">{note.title}</div>
+            <div data-testid="tasks-container">
+              {note.tasks.map(task => (
+                <div key={task.id} data-testid={`task-${task.id}`}>{task.text}</div>
+              ))}
+            </div>
             <button onClick={addTask} data-testid="add-task-button">Add Task</button>
             <button onClick={goOnline} data-testid="go-online-button">Go Online</button>
           </div>
@@ -377,12 +417,16 @@ describe('Offline Operation Tests', () => {
       render(<ConcurrentModComponent />);
       
       // Wait for the component to load
-      expect(screen.getByText('Offline Test Note')).toBeInTheDocument();
+      expect(screen.getByTestId('note-title')).toHaveTextContent('Offline Test Note');
+      expect(screen.getByTestId('connection-status')).toHaveTextContent('Status: Offline');
       
       // Create a local task while offline
       await act(async () => {
         await userEvent.click(screen.getByTestId('add-task-button'));
       });
+      
+      // UI should reflect the added task
+      expect(screen.getByTestId('task-local-task')).toBeInTheDocument();
       
       // Go online
       await act(async () => {
