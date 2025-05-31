@@ -29,7 +29,8 @@ module.exports = {
     hardenedRuntime: true,
     gatekeeperAssess: false,
     entitlements: "build/entitlements.mac.plist",
-    entitlementsInherit: "build/entitlements.mac.plist"
+    entitlementsInherit: "build/entitlements.mac.plist",
+    icon: "dist/icons/icon.icns"
   },
   win: {
     target: [
@@ -41,14 +42,15 @@ module.exports = {
       }
     ],
     artifactName: "${productName}-Setup-${version}.${ext}",
-    icon: "public/icons/icon.ico"
+    icon: "dist/icons/icon.ico"
   },
   linux: {
     target: [
       "AppImage",
       "deb"
     ],
-    category: "Utility"
+    category: "Utility",
+    icon: "dist/icons/icon.png"
   },
   nsis: {
     oneClick: true,

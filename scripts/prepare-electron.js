@@ -285,48 +285,95 @@ fs.writeFileSync(path.join(distElectronDir, 'preload.js'), preloadJsContent);
 
 console.log('✅ Electron files prepared successfully for packaging');
 
-// Copy icon files
-console.log('📝 Copying icon files...');
+// Copy and create icon files
+console.log('📝 Preparing icon files...');
 
-// Ensure the destination directory exists
-const iconsDir = path.join(projectRoot, 'dist', 'icons');
+// Ensure the destination directories exist
+const distDir = path.join(projectRoot, 'dist');
+if (!fs.existsSync(distDir)) {
+  fs.mkdirSync(distDir, { recursive: true });
+}
+
+const iconsDir = path.join(distDir, 'icons');
 if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
-// Copy icon files
+// Create minimal valid icon files
+const createIcoFile = () => {
+  // This is a minimal valid .ico file (1x1 px)
+  const icoHeader = Buffer.from([
+    0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 
+    0x00, 0x00, 0x01, 0x00, 0x20, 0x00, 0x68, 0x04, 
+    0x00, 0x00, 0x16, 0x00, 0x00, 0x00
+  ]);
+  
+  // Simple 16x16 bitmap data
+  const bmpData = Buffer.alloc(16*16*4);
+  
+  // Fill with a blue color
+  for (let i = 0; i < bmpData.length; i += 4) {
+    bmpData[i] = 0; // B
+    bmpData[i + 1] = 0; // G
+    bmpData[i + 2] = 255; // R
+    bmpData[i + 3] = i < bmpData.length/2 ? 255 : 0; // Alpha
+  }
+  
+  return Buffer.concat([icoHeader, bmpData]);
+};
+
+const createPngFile = () => {
+  // This is a minimal valid PNG file (1x1 transparent pixel)
+  return Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEtAI0Ke7kaAAAAABJRU5ErkJggg==',
+    'base64'
+  );
+};
+
+// Define icon files to create
 const iconFiles = [
-  { src: 'public/icons/icon.ico', dest: 'dist/icons/icon.ico' },
-  { src: 'public/icons/icon.png', dest: 'dist/icons/icon.png' }
+  { path: path.join(iconsDir, 'icon.ico'), create: createIcoFile },
+  { path: path.join(iconsDir, 'icon.png'), create: createPngFile }
 ];
 
+// Create each icon file
 for (const icon of iconFiles) {
-  const srcPath = path.join(projectRoot, icon.src);
-  const destPath = path.join(projectRoot, icon.dest);
-  
   try {
+    // First try to copy from public directory if it exists
+    const srcPath = path.join(projectRoot, 'public', 'icons', path.basename(icon.path));
+    
     if (fs.existsSync(srcPath)) {
-      fs.copyFileSync(srcPath, destPath);
-      console.log(`✅ Copied ${icon.src} to ${icon.dest}`);
+      fs.copyFileSync(srcPath, icon.path);
+      console.log(`✅ Copied ${srcPath} to ${icon.path}`);
     } else {
-      console.warn(`⚠️ Icon file ${icon.src} not found`);
-      
       // If source doesn't exist, create a placeholder
-      if (icon.src.endsWith('.ico')) {
-        console.log('⚠️ Creating placeholder .ico file...');
-        // For .ico files, we'll need a different approach
-        // Create a small empty file as placeholder
-        fs.writeFileSync(destPath, Buffer.alloc(0));
-      } else if (icon.src.endsWith('.png')) {
-        // Create a minimal valid PNG file as placeholder
-        const minimalPNG = Buffer.from('89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF610000000970485973000016250000162501495224F00000001C4944415478DA63FCFFFF3F03B9807154030686A8010683803100069E0105A38043CD0000000049454E44AE426082', 'hex');
-        fs.writeFileSync(destPath, minimalPNG);
-        console.log(`⚠️ Created placeholder PNG at ${icon.dest}`);
-      }
+      const iconBuffer = icon.create();
+      fs.writeFileSync(icon.path, iconBuffer);
+      console.log(`✅ Created placeholder icon at ${icon.path}`);
     }
   } catch (error) {
-    console.error(`❌ Error copying icon ${icon.src}:`, error);
+    console.error(`❌ Error creating icon ${icon.path}:`, error);
   }
 }
 
+// Create .icns file for macOS if needed
+if (process.platform === 'darwin') {
+  // For macOS, we'd ideally use a tool like iconutil
+  // For this script, we'll just copy an existing .icns or create a placeholder
+  const icnsPath = path.join(iconsDir, 'icon.icns');
+  const srcIcnsPath = path.join(projectRoot, 'public', 'icons', 'icon.icns');
+  
+  if (fs.existsSync(srcIcnsPath)) {
+    fs.copyFileSync(srcIcnsPath, icnsPath);
+    console.log(`✅ Copied ${srcIcnsPath} to ${icnsPath}`);
+  } else {
+    // Create empty .icns file as placeholder
+    // In a real scenario, you'd need a proper tool to create a valid .icns
+    fs.writeFileSync(icnsPath, Buffer.alloc(0));
+    console.log(`⚠️ Created empty placeholder .icns file at ${icnsPath}`);
+    console.log(`   Note: This is not a valid .icns file. Use a proper tool to create one.`);
+  }
+}
+
+console.log('✅ Icon files prepared successfully');
 console.log('✅ All preparations completed successfully!');

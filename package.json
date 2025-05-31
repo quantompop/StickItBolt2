@@ -96,7 +96,7 @@
     },
     "mac": {
       "category": "public.app-category.productivity",
-      "icon": "public/icons/icon.icns",
+      "icon": "dist/icons/icon.icns",
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "build/entitlements.mac.plist",
@@ -111,7 +111,7 @@
           ]
         }
       ],
-      "icon": "public/icons/icon.ico"
+      "icon": "dist/icons/icon.ico"
     },
     "linux": {
       "target": [
@@ -119,7 +119,7 @@
         "deb"
       ],
       "category": "Utility",
-      "icon": "public/icons/icon.png"
+      "icon": "dist/icons/icon.png"
     },
     "nsis": {
       "oneClick": true,
