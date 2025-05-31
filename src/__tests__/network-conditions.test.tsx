@@ -179,9 +179,9 @@ describe('Network Conditions Tests', () => {
           }
         };
         
-        const handleRetry = () => {
+        const handleRetry = async () => {
           setRetryCount(prev => prev + 1);
-          fetchWithError();
+          await fetchWithError();
         };
         
         return (
