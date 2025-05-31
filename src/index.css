@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for range inputs */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  background: #ddd;
+  outline: none;
+  opacity: 1;
+  cursor: pointer;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #3b82f6;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+/* Make sure right-click menus are visible over everything */
+.context-menu {
+  z-index: 50 !important;
+  position: fixed !important;
+}
+
+/* Fix for position:fixed context menus */
+.submenu {
+  z-index: 100 !important;
+  position: fixed !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+}
+
+/* Override any interfering styles that might affect sliders */
+.slider-container input[type=range] {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+}
+
+.slider-value {
+  width: 40px;
+  text-align: center;
+  font-weight: bold;
+}
+
+/* Fix slider track */
+.slider-container input[type=range]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #ddd;
+  border-radius: 5px;
+}
+
+.slider-container input[type=range]::-moz-range-track {
+  width: 100%;
+  height: 8px;
+  cursor: pointer;
+  background: #ddd;
+  border-radius: 5px;
+}
+
+/* Fix slider thumb */
+.slider-container input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -4px; /* You need to specify a margin in Chrome */
+}
+
+/* Fix priority menu */
+.priority-menu {
+  position: fixed !important;
+  z-index: 100 !important;
+  background: white !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.08) !important;
+  border-radius: 0.375rem !important;
+  width: auto !important;
+  min-width: 120px !important;
+}
