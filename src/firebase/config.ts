@@ -17,14 +17,15 @@ let app, auth, db;
 
 try {
   // Check if we're in a test environment
-  const isTest = process.env.NODE_ENV === 'test' || typeof process !== 'undefined' && process.env.VITEST;
+  const isTest = process.env.NODE_ENV === 'test' || 
+                 typeof process !== 'undefined' && process.env.VITEST;
   
   if (isTest) {
     console.log("Using mock Firebase for tests");
     app = {};
     auth = { currentUser: null };
     db = {};
-  } 
+  }
   // Check if we're in an environment where Firebase can be initialized
   else if (typeof window !== 'undefined') {
     // Initialize Firebase with default or environment values
