@@ -39,7 +39,7 @@ function createWindow() {
       contextIsolation: true,
       nodeIntegration: false,
     },
-    icon: path.join(__dirname, '../dist/icons/icon.ico'),
+    icon: path.join(__dirname, '../dist/icons/icon.png'),
   });
 
   // Check if running in development mode
@@ -299,79 +299,107 @@ if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
-// Create minimal valid icon files
-const createIcoFile = () => {
-  // This is a minimal valid .ico file (1x1 px)
-  const icoHeader = Buffer.from([
-    0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x10, 0x10, 
-    0x00, 0x00, 0x01, 0x00, 0x20, 0x00, 0x68, 0x04, 
-    0x00, 0x00, 0x16, 0x00, 0x00, 0x00
-  ]);
-  
-  // Simple 16x16 bitmap data
-  const bmpData = Buffer.alloc(16*16*4);
-  
-  // Fill with a blue color
-  for (let i = 0; i < bmpData.length; i += 4) {
-    bmpData[i] = 0; // B
-    bmpData[i + 1] = 0; // G
-    bmpData[i + 2] = 255; // R
-    bmpData[i + 3] = i < bmpData.length/2 ? 255 : 0; // Alpha
-  }
-  
-  return Buffer.concat([icoHeader, bmpData]);
-};
+// Copy icon files from public to dist
+const sourceIconsDir = path.join(projectRoot, 'public', 'icons');
+const iconFiles = ['icon.png', 'icon.ico'];
 
-const createPngFile = () => {
-  // This is a minimal valid PNG file (1x1 transparent pixel)
-  return Buffer.from(
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAEtAI0Ke7kaAAAAABJRU5ErkJggg==',
-    'base64'
-  );
-};
-
-// Define icon files to create
-const iconFiles = [
-  { path: path.join(iconsDir, 'icon.ico'), create: createIcoFile },
-  { path: path.join(iconsDir, 'icon.png'), create: createPngFile }
-];
-
-// Create each icon file
-for (const icon of iconFiles) {
-  try {
-    // First try to copy from public directory if it exists
-    const srcPath = path.join(projectRoot, 'public', 'icons', path.basename(icon.path));
-    
-    if (fs.existsSync(srcPath)) {
-      fs.copyFileSync(srcPath, icon.path);
-      console.log(`✅ Copied ${srcPath} to ${icon.path}`);
-    } else {
-      // If source doesn't exist, create a placeholder
-      const iconBuffer = icon.create();
-      fs.writeFileSync(icon.path, iconBuffer);
-      console.log(`✅ Created placeholder icon at ${icon.path}`);
+try {
+  if (fs.existsSync(sourceIconsDir)) {
+    // Copy each icon file
+    for (const iconFile of iconFiles) {
+      const sourcePath = path.join(sourceIconsDir, iconFile);
+      const destPath = path.join(iconsDir, iconFile);
+      
+      if (fs.existsSync(sourcePath)) {
+        fs.copyFileSync(sourcePath, destPath);
+        console.log(`✅ Copied ${sourcePath} to ${destPath}`);
+      } else {
+        console.log(`⚠️ Source icon file ${sourcePath} not found, will create placeholder`);
+      }
     }
-  } catch (error) {
-    console.error(`❌ Error creating icon ${icon.path}:`, error);
+  } else {
+    console.log(`⚠️ Source icons directory not found: ${sourceIconsDir}`);
   }
+} catch (error) {
+  console.error(`❌ Error copying icons:`, error);
 }
 
-// Create .icns file for macOS if needed
-if (process.platform === 'darwin') {
-  // For macOS, we'd ideally use a tool like iconutil
-  // For this script, we'll just copy an existing .icns or create a placeholder
-  const icnsPath = path.join(iconsDir, 'icon.icns');
-  const srcIcnsPath = path.join(projectRoot, 'public', 'icons', 'icon.icns');
+// Create placeholder icon files if they don't exist yet
+// PNG placeholder
+const pngPath = path.join(iconsDir, 'icon.png');
+if (!fs.existsSync(pngPath)) {
+  // Simple 1x1 transparent PNG
+  const pngData = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAQAAAAEACAYAAABccqhmAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAABmJLR0QA/wD/AP+gvaeTAAAAB3RJTUUH5QcQDjsXWAcF2QAAFF9JREFUeNrt3X+sX3V9x/HXuZTetkILBWGsKOtEcepQKRTvFSVdN5frVoesLq5xMnRsKLpmQxMzzRKTlYmLGfvDZPEPM+YSRmb2h5qwQSpdCM4wSgcdbSkySjdEitTKpYXS/rh3f3wrbfm23/M9P97n8znfz/ORkBCae97nnM/5vM/7/H7VCQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMBjpVqR03pnmCm2CJhgm1O3T3f/yxWA0A8gAJgEwb91AQQAE4F/awIIAKoM/o0NIACIK/g3JoAAIP7gz1wAAcDsBH+mAggAZjf4UxdAAMD0JyaAAGD6ExNAADD9uAQQAEx/fgEEANOfnwACgOlHJYAAYPpRCSAAmH6DAwgApj/bAsznXcD0Z1cAcwCmH6UAZgCmH6UAAgDTjzEAwPRnewYApj/bMwDTj1IAATCYfoQCCAAW248ugBmAye9sBDD9mAM4AvNx6MfrwdDf3ZfUu4iFdKZvNXGu2vMCTH/WAswATH+2BdAJTH/2BTADMP3ZFTCfdwHTn10BzACm39mDfjdnACa/mwKYAZh+ZzMA05+dmQBMAybfPQEEwOp3VwABMPnuCiAApt9dAQTA9LsrgABELoDVv7sCCIDJd1cAAYhcwHzeCUx/dgWw+pt8dwUQAJPvrgACYPrdFUAAoh4CmH5nBRAA05/tGQBMf7ZnADD92RZg8u0X4OFgpt9+AcwAJt9+AQQgcgHTeScw/dkVwOrf5BkAVn/7BRAA02+/AAJg+u0XQABMv/0CCEB0AggABCByAQQAAhC5AAIAAYhcAAGAAEQugABAAOx3QA0AghC5AAIAAYhcAAGAAEQugABAACIXQAAgAJELqPMO5IyNXSl2dOI12LbZfxdwBgABiFwAAYAAxC1A530QGD1M/uyfBXAGAAGIXAABgADELWA+7wQjv9mfAXAGAAGIXAABgADELYAAQAAiFkAAIAARCyAAEICIBRAAQAAiFkAAIAARCyAAEICIBRAAQAAiFkAAIAARCyAAEICIBRAAQAAiFkAAIAARCyAAEICIBRAAQAAiFkAAIAAxC6jzPgAQggABAATAfifoHkAITAh2ixGA0JkZ2OlE3Y1CAEKVskCY59vdMQIQskSFmPyUAgQgdCkKpQiQtPOY/NQC1KgfCEGkm0kKgMmfewG6DxCCSDaTBABe0xIQmckpGmDyZ19ATrtDgxSRpgvIMR7TH5cAOqmBEJSoVATEK0BcGqhxm0gUIMREApgfRCSAUycSkIAAZgZxCmAEgABAACAAEAAIAAQAAgABgABAADoBCAAEAAIAAYAAQAAgABAACAAEAAIAAYAAQAAgABAAaCAbwQYDFKp0pRQgK4xUYfyNQmUY0gTEJaA2EcYo3n0VEIOA+VTNFxPP9E++gPoJUZSGKPKZgbYL4IeDQo9hXDxO7AMhS0AIkWiUgLYLkNJLdCYffQOZfGcFUFIvk+/GDCAWAWr5ZTL5dsyMtD0DqJ0Qpe5m6BIQlIDamcnP1PkzQgizAPshBAA60+4GakQ0+ZwFWN0QLfYaXy0gRgGLmcC5dqYtAYpRQF0zLQapEZ1RoG0C5oq8Vo3A9McoYNE3sA6Q5+KZv3YJiHkGUDsz+S3cKQJ0Jvt6Jv+ECwUAsPlSAQC8pisAgPMCVOddWAzm/94/JQGA+b9XAIC5v1cAgHm/VwCA+b73AoC5vlcAgLl+CgIAzPO9ArQCwBw/BQHAPNl7ASryzsUkYDVZnH0BdSTmizw1A1jdvRcAYD7v3QzAXN57ARG/D1XkqRmAub73AuJ7KxABMCf3XkA0s38EYNJHEECJ6n2okX4UrJ7QH2xr5I84CRFwIYgA1JH/GZ9sFIAAlIj/jE89MTQIAAS0MQDRCsCoHO4LQ0zlqHNNXqNFxH1WwEQAlIsAUxfTH7AABGBCgTXyXSAQgCBCsKqsT5gBAYAARCSAABgPCADMBQgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAFo5m8FQgdYLREJYAZgICAAmAmwGRQACADMAggAZgE2gwQAmwESAMwCCABmAZhpATEdEJMBEoBYBcQqgAQgVgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgVgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgVgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgZgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgVgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgZgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgVgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgZgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgVgGxCiABiFlArAJIAGIVEKsAEoBYBcQqgAQgVgGxCiABiFlArAJIAGIVEKsAEoCYBcQqgAQgZgGxCiABiFlArAIYARAACIBNIAGAAEAAaOYvBkEA1IJvBdIVEICIBRAALCZ+AcwCEICIBRCAKAREvRkkAIhWgBlA5AKiFxCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIFYBsQogAYhZQKwCSABiFhCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIFYBsQogAYhZQKwCSABiFhCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIFYBsQogAYhZQKwCSABiFhCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIGYBsQogAYhZQKwCqIkHwoNWGQXUzlQ1AhCRAGYAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADELCBWASQAMQuIVQAJQMwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADELCBWASQAMQuIVQAJQMwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQKwCYhVAAhCzgFgFkADELCBWASQAMQuIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhVAAhCzgFgFkADELCBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhXADMAcgABgDmAvQAAgABAANPC3AoG5AI9JQQAJgM0gCYDNIAmAzSAJgM0gCYDNIAmAzSAJgM0gCYDNIAmAzSAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhVAAhCzgFgFkADELCBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhVAAhCzgFgFkADELCBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhVAAhCzgFgFkADELCBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhVAAhCzgFgFkADELCBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhVAAhCzgFgFkADELCBWASQAsQqIVQAJQKwCYhVAAhCrgFgFkADEKiBWASQAsQqIVQAJQMwCYhVAAhCzgFgFkADELCBWAZP8RY7alYkHnMmxWUBtVG2kAMIQ0wxgPh9k8iu+RyEAwcxIbQUQGbZnACQAsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIGYBsQogAYhZQKwCSABiFhCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIGYBsQogAYhZQKwCSABiFhCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIGYBsQogAYhZQKwCSABiFhCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIGYBsQogAYhZQKwCSABiFhCrABKAWAXEKoAEIFYBsQogAYhVQKwCSABiFRCrABKAWAXEKoAEIGYBsQogAYhZQKwCJvnLHLVJTwUmw3YBdSSK+rVmAObGYc4ATAQwF2ivALTKfLHGAEAAuv0mIACAzcB0B2hkJt/9AOTbBBKAaDaBdTATMNa4HYCYBMRjIVj1+VYg4jKf9wLAtEYALAz0vZKoWguA1wLkvYB6Qn+wrV4L0IhI34dQgACUyP7Mj7YAuANf5FkjfoEImOtnUYB5fhYF1LEuDnXCf9AiRCKgPjHeZ3l+7pWAOOSlIiDeZ4CiFaDUBTRzj4C5vXcCYs78GAvMkb0REPPZjzhWKGYJ3ggA5vJeC4j9lCT2+3Nj9wjmRm+tKgFCgPm9FwKYCXgpIO5HgmMXYJ7vvQCd9xQwFzDHz0qA+b1XAuoGBaBOfGsYm/eZFeA18Zhf6XFLgOYuACf0J9sCvLoFCIKAGAUgCAExC0AQAmIWgCAExCwAQQiIWQCCEBCzAAQhIGYBCEJAzAIQhICYBSAIATELQBACYhaAIATELABBCIhZAIIQELMABCEgZgEIQkDMAhCEgJgFIAgBMQtAEAJiFoAgBMQsAEEIiFkAghAQswAEISBmAQhCQMwCEISAmAUgCAExC0AQAmIWgCAExCwAQQiIWQCCEBCzAAQhIGYBCEJAzAIQhICYBSAIATELQBACYhaAIATELABBCIhZAIIQELMABCEgZgFq+xpxvQD2C6jzbsQqwvSHK0Btfiv+jtFhTn+gAhoqACHNEMz9AxHQYAEIcbZg6h+wgIYLYNZgsuydAEACIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAAGAAEAAIAAQAAgABAACAKFuDQC4L0CL/RcPFnnmjwAoBH9QAhYj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',
+    'base64'
+  );
+  fs.writeFileSync(pngPath, pngData);
+  console.log(`✅ Created valid PNG icon at ${pngPath}`);
+}
+
+// ICO placeholder
+const icoPath = path.join(iconsDir, 'icon.ico');
+if (!fs.existsSync(icoPath)) {
+  // Create a minimal valid ICO file
+  const headerSize = 22; // ICO header size
+  const dibSize = 40;    // DIB header size
+  const pixelDataSize = 16 * 16 * 4; // 16x16 pixels with 4 bytes per pixel
   
-  if (fs.existsSync(srcIcnsPath)) {
-    fs.copyFileSync(srcIcnsPath, icnsPath);
-    console.log(`✅ Copied ${srcIcnsPath} to ${icnsPath}`);
-  } else {
-    // Create empty .icns file as placeholder
-    // In a real scenario, you'd need a proper tool to create a valid .icns
+  // Allocate buffer for the entire ICO file
+  const buffer = Buffer.alloc(headerSize + dibSize + pixelDataSize);
+  
+  // Write ICO header
+  buffer.writeUInt16LE(0, 0);     // Reserved, must be 0
+  buffer.writeUInt16LE(1, 2);     // Type: 1 for ICO
+  buffer.writeUInt16LE(1, 4);     // Number of images
+  
+  // Write icon entry
+  buffer.writeUInt8(16, 6);       // Width (16 pixels)
+  buffer.writeUInt8(16, 7);       // Height (16 pixels)
+  buffer.writeUInt8(0, 8);        // No color palette
+  buffer.writeUInt8(0, 9);        // Reserved, must be 0
+  buffer.writeUInt16LE(1, 10);    // Color planes
+  buffer.writeUInt16LE(32, 12);   // Bits per pixel (32)
+  buffer.writeUInt32LE(dibSize + pixelDataSize, 14); // Size of DIB + pixel data
+  buffer.writeUInt32LE(headerSize, 18);  // Offset to DIB header
+  
+  // Write DIB header
+  buffer.writeUInt32LE(dibSize, 22);     // DIB header size
+  buffer.writeInt32LE(16, 26);           // Width
+  buffer.writeInt32LE(32, 30);           // Height (doubled for ICO format - includes both AND and XOR masks)
+  buffer.writeUInt16LE(1, 34);           // Color planes
+  buffer.writeUInt16LE(32, 36);          // Bits per pixel
+  buffer.writeUInt32LE(0, 38);           // No compression
+  buffer.writeUInt32LE(pixelDataSize, 42); // Image size
+  buffer.writeInt32LE(0, 46);            // X pixels per meter
+  buffer.writeInt32LE(0, 50);            // Y pixels per meter
+  buffer.writeUInt32LE(0, 54);           // Colors used
+  buffer.writeUInt32LE(0, 58);           // Important colors
+  
+  // Fill pixel data with blue color
+  let offset = headerSize + dibSize;
+  for (let i = 0; i < 16 * 16; i++) {
+    buffer.writeUInt8(255, offset++);  // B
+    buffer.writeUInt8(0, offset++);    // G
+    buffer.writeUInt8(0, offset++);    // R
+    buffer.writeUInt8(255, offset++);  // Alpha
+  }
+  
+  fs.writeFileSync(icoPath, buffer);
+  console.log(`✅ Created valid ICO file at ${icoPath}`);
+}
+
+// ICNS file for Mac
+if (process.platform === 'darwin') {
+  const icnsPath = path.join(iconsDir, 'icon.icns');
+  if (!fs.existsSync(icnsPath)) {
+    // For macOS, we'd ideally use iconutil
+    // For this script, we'll just create a placeholder
+    console.log(`⚠️ ICNS file not found. A real .icns file should be created using macOS tools.`);
+    
+    // Create an empty icns file as placeholder
     fs.writeFileSync(icnsPath, Buffer.alloc(0));
-    console.log(`⚠️ Created empty placeholder .icns file at ${icnsPath}`);
-    console.log(`   Note: This is not a valid .icns file. Use a proper tool to create one.`);
+    console.log(`✅ Created placeholder ICNS file at ${icnsPath} (not a valid .icns file!)`);
   }
 }
 
