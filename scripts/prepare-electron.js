@@ -8,6 +8,11 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..');
 
+// Ensure scripts directory exists
+if (!fs.existsSync(__dirname)) {
+  fs.mkdirSync(__dirname, { recursive: true });
+}
+
 // Ensure dist-electron directory exists
 const distElectronDir = path.join(projectRoot, 'dist-electron');
 if (!fs.existsSync(distElectronDir)) {
@@ -299,11 +304,28 @@ for (const icon of iconFiles) {
   const srcPath = path.join(projectRoot, icon.src);
   const destPath = path.join(projectRoot, icon.dest);
   
-  if (fs.existsSync(srcPath)) {
-    fs.copyFileSync(srcPath, destPath);
-    console.log(`✅ Copied ${icon.src} to ${icon.dest}`);
-  } else {
-    console.warn(`⚠️ Icon file ${icon.src} not found`);
+  try {
+    if (fs.existsSync(srcPath)) {
+      fs.copyFileSync(srcPath, destPath);
+      console.log(`✅ Copied ${icon.src} to ${icon.dest}`);
+    } else {
+      console.warn(`⚠️ Icon file ${icon.src} not found`);
+      
+      // If source doesn't exist, create a placeholder
+      if (icon.src.endsWith('.ico')) {
+        console.log('⚠️ Creating placeholder .ico file...');
+        // For .ico files, we'll need a different approach
+        // Create a small empty file as placeholder
+        fs.writeFileSync(destPath, Buffer.alloc(0));
+      } else if (icon.src.endsWith('.png')) {
+        // Create a minimal valid PNG file as placeholder
+        const minimalPNG = Buffer.from('89504E470D0A1A0A0000000D49484452000000100000001008060000001FF3FF610000000970485973000016250000162501495224F00000001C4944415478DA63FCFFFF3F03B9807154030686A8010683803100069E0105A38043CD0000000049454E44AE426082', 'hex');
+        fs.writeFileSync(destPath, minimalPNG);
+        console.log(`⚠️ Created placeholder PNG at ${icon.dest}`);
+      }
+    }
+  } catch (error) {
+    console.error(`❌ Error copying icon ${icon.src}:`, error);
   }
 }
 
