@@ -815,7 +815,7 @@ const Board: React.FC = () => {
 
       {/* Update Manager Modal */}
       {showUpdateManager && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\" role="dialog\" aria-modal="true">
           <div className="relative">
             <UpdateManager onClose={() => setShowUpdateManager(false)} />
           </div>
