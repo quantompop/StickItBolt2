@@ -14,6 +14,7 @@ import { NoteColor } from '../types';
 import AuthModal from './Auth/AuthModal';
 import UpdateManager from './UpdateManager';
 import SyncIndicator from './SyncIndicator';
+import { signOut } from '../firebase/authService';
 
 const Board: React.FC = () => {
   const { state, dispatch } = useBoard();
@@ -30,6 +31,7 @@ const Board: React.FC = () => {
   const [showSyncPanel, setShowSyncPanel] = useState(false);
   const [versionDescription, setVersionDescription] = useState('');
   const [showVersionDialog, setShowVersionDialog] = useState(false);
+  const [signOutError, setSignOutError] = useState<string | null>(null);
   
   // Initialize the state to ensure it has expected properties
   useEffect(() => {
@@ -268,12 +270,18 @@ const Board: React.FC = () => {
   
   // Handle signing out
   const handleSignOut = async () => {
+    setSignOutError(null);
+    
     if (window.confirm("Are you sure you want to sign out?")) {
       try {
+        console.log("Attempting to sign out...");
         await signOut();
+        console.log("Sign out successful");
       } catch (error) {
         console.error("Error signing out:", error);
-        alert("Failed to sign out. Please try again.");
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        setSignOutError(`Failed to sign out: ${errorMessage}`);
+        alert(`Failed to sign out: ${errorMessage}`);
       }
     }
   };
@@ -550,6 +558,21 @@ const Board: React.FC = () => {
         </div>
       </div>
       
+      {/* Sign Out Error Message */}
+      {signOutError && (
+        <div className="fixed top-14 right-0 left-0 mx-auto w-96 bg-red-100 border border-red-200 text-red-700 px-4 py-3 rounded z-50 shadow-md">
+          <div className="flex justify-between items-center">
+            <span>{signOutError}</span>
+            <button 
+              onClick={() => setSignOutError(null)}
+              className="text-red-500 hover:text-red-700"
+            >
+              <X size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Sync Panel */}
       {showSyncPanel && (
         <div className="absolute top-14 right-0 bg-white shadow-lg z-20 p-4 w-80 rounded-l-lg border-l border-t border-b border-gray-200">
@@ -792,7 +815,7 @@ const Board: React.FC = () => {
 
       {/* Update Manager Modal */}
       {showUpdateManager && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50\" role="dialog\" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true">
           <div className="relative">
             <UpdateManager onClose={() => setShowUpdateManager(false)} />
           </div>

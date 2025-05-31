@@ -6,6 +6,11 @@ import { v4 as uuidv4 } from 'uuid';
 // Save board state to Firestore
 export const saveBoardState = async (userId: string, boardState: BoardState) => {
   try {
+    if (!db) {
+      console.error("Firestore instance is not initialized");
+      throw new Error("Firebase database is not initialized");
+    }
+    
     // Create a boardId if one doesn't exist
     if (!boardState.boardId) {
       boardState.boardId = uuidv4();
@@ -37,6 +42,11 @@ export const saveBoardState = async (userId: string, boardState: BoardState) => 
 // Get board state from Firestore
 export const getBoardState = async (boardId: string) => {
   try {
+    if (!db) {
+      console.error("Firestore instance is not initialized");
+      throw new Error("Firebase database is not initialized");
+    }
+    
     console.log(`Fetching board ${boardId} from Firestore`);
     const boardRef = doc(db, 'boards', boardId);
     const boardSnap = await getDoc(boardRef);
@@ -58,6 +68,11 @@ export const getBoardState = async (boardId: string) => {
 // Get all boards for a user
 export const getUserBoards = async (userId: string) => {
   try {
+    if (!db) {
+      console.error("Firestore instance is not initialized");
+      throw new Error("Firebase database is not initialized");
+    }
+    
     console.log(`Fetching all boards for user ${userId}`);
     const boardsQuery = query(collection(db, 'boards'), where('userId', '==', userId));
     const boardsSnap = await getDocs(boardsQuery);
@@ -78,6 +93,11 @@ export const getUserBoards = async (userId: string) => {
 // Delete a board
 export const deleteBoard = async (boardId: string) => {
   try {
+    if (!db) {
+      console.error("Firestore instance is not initialized");
+      throw new Error("Firebase database is not initialized");
+    }
+    
     console.log(`Deleting board ${boardId}`);
     await deleteDoc(doc(db, 'boards', boardId));
     console.log(`Board ${boardId} deleted successfully`);
@@ -91,6 +111,11 @@ export const deleteBoard = async (boardId: string) => {
 // Update a specific note in a board
 export const updateNote = async (boardId: string, noteId: string, noteData: Partial<Note>) => {
   try {
+    if (!db) {
+      console.error("Firestore instance is not initialized");
+      throw new Error("Firebase database is not initialized");
+    }
+    
     console.log(`Updating note ${noteId} in board ${boardId}`);
     // Get the current board
     const boardRef = doc(db, 'boards', boardId);

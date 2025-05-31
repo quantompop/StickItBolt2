@@ -39,10 +39,31 @@ export const signIn = async (email: string, password: string) => {
 // Sign out user
 export const signOut = async () => {
   try {
+    console.log('Attempting to sign out user...');
+    
+    // Make sure auth is initialized
+    if (!auth) {
+      console.error('Auth is not initialized');
+      throw new Error('Authentication is not initialized');
+    }
+    
+    // Check if there's a current user before signing out
+    if (!auth.currentUser) {
+      console.log('No user currently signed in');
+      return true; // No need to sign out if no one is signed in
+    }
+    
+    // Call Firebase signOut
     await firebaseSignOut(auth);
+    console.log('User signed out successfully');
+    
+    // Clear any local authentication data
+    localStorage.removeItem('authUser');
+    
     return true;
   } catch (error) {
-    throw error;
+    console.error('Error signing out:', error);
+    throw new Error(`Failed to sign out: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 };
 

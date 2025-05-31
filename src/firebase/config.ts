@@ -28,11 +28,21 @@ try {
   }
   // Check if we're in an environment where Firebase can be initialized
   else if (typeof window !== 'undefined') {
-    // Initialize Firebase with default or environment values
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    console.log("Firebase initialized successfully");
+    console.log("Initializing Firebase...");
+    try {
+      // Initialize Firebase with default or environment values
+      app = initializeApp(firebaseConfig);
+      auth = getAuth(app);
+      db = getFirestore(app);
+      console.log("Firebase initialized successfully");
+    } catch (initError) {
+      console.error("Firebase initialization error:", initError);
+      
+      // Provide mock objects to prevent crashes
+      app = {};
+      auth = { currentUser: null };
+      db = {};
+    }
   } else {
     // In a non-browser environment, provide mock objects
     console.warn("Firebase not initialized - non-browser environment detected");
