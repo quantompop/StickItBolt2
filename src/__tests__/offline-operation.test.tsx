@@ -85,6 +85,9 @@ describe('Offline Operation Tests', () => {
     
     // Mock navigator.onLine
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+    
+    // Suppress console.error messages during tests
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
   
   describe('Offline Data Persistence', () => {

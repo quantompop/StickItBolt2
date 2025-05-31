@@ -25,6 +25,9 @@ describe('Network Conditions Tests', () => {
     
     // Reset network conditions
     vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
+    
+    // Suppress console.error messages during tests
+    vi.spyOn(console, 'error').mockImplementation(() => {});
   });
   
   describe('Network Status Detection', () => {
