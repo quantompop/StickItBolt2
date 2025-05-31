@@ -4,12 +4,12 @@ import { getFirestore } from 'firebase/firestore';
 
 // Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBxkS7VHiZx9nGp_5uJH6I1NmrPFuJQCl0",
-  authDomain: "stickit-app.firebaseapp.com",
-  projectId: "stickit-app",
-  storageBucket: "stickit-app.firebasestorage.app",
-  messagingSenderId: "648871566918",
-  appId: "1:648871566918:web:ee965f4f212a3e104af447"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBxkS7VHiZx9nGp_5uJH6I1NmrPFuJQCl0",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "stickit-app.firebaseapp.com",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "stickit-app",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "stickit-app.firebasestorage.app",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "648871566918",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:648871566918:web:ee965f4f212a3e104af447"
 };
 
 // Initialize Firebase only in browser environment
