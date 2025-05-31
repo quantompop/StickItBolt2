@@ -6,23 +6,14 @@ import { resolve } from 'path';
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   define: {
-    // Required for Draft.js
     'process.env': {
       NODE_ENV: mode === 'production' ? JSON.stringify('production') : JSON.stringify('development'),
     },
     global: 'window',
   },
   optimizeDeps: {
-    include: ['draft-js', 'immutable'],
     esbuildOptions: {
       target: 'es2020',
-    }
-  },
-  resolve: {
-    alias: {
-      // Fix Draft.js imports
-      'draft-js': resolve(__dirname, 'node_modules/draft-js'),
-      'immutable': resolve(__dirname, 'node_modules/immutable'),
     }
   },
   build: {
@@ -49,11 +40,6 @@ export default defineConfig(({ mode }) => ({
           // Group firebase related packages
           if (id.includes('node_modules/firebase')) {
             return 'vendor-firebase';
-          }
-          // Group draft-js related packages
-          if (id.includes('node_modules/draft-js') || 
-              id.includes('node_modules/immutable')) {
-            return 'vendor-draft-js';
           }
           // All other dependencies
           if (id.includes('node_modules')) {

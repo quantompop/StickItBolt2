@@ -30,15 +30,12 @@
     "build:mac": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --mac",
     "build:linux": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --linux",
     "build:all": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs -mwl",
-    "clean": "rimraf dist dist-electron",
-    "prepare-dirs": "mkdir -p public/css dist/public/css"
+    "clean": "rimraf dist dist-electron"
   },
   "dependencies": {
-    "draft-js": "^0.11.7",
     "electron-store": "^8.1.0",
     "electron-updater": "^6.1.7",
     "firebase": "^10.9.0",
-    "immutable": "^4.3.7",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
@@ -49,7 +46,6 @@
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.5.2",
-    "@types/draft-js": "^0.11.18",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@types/uuid": "^9.0.8",
@@ -73,7 +69,6 @@
     "postcss": "^8.4.35",
     "rimraf": "^5.0.10",
     "tailwindcss": "^3.4.1",
-    "terser": "^5.27.0",
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
     "vite": "^6.3.5",

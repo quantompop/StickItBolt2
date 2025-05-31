@@ -1,5 +1,4 @@
 import React from 'react';
-import { Editor, EditorState, convertFromRaw, ContentState } from 'draft-js';
 
 interface RichTextViewProps {
   content: string;
@@ -7,35 +6,49 @@ interface RichTextViewProps {
 }
 
 const RichTextView: React.FC<RichTextViewProps> = ({ content, className = '' }) => {
-  // Create editor state from content
-  const editorState = React.useMemo(() => {
-    if (!content) {
-      return EditorState.createWithContent(ContentState.createFromText(''));
-    }
+  // Extract plain text from potentially rich content
+  const getPlainText = (richContent: string): string => {
+    if (!richContent) return '';
     
     try {
-      // Only try to parse as JSON if it looks like JSON
-      if (content.startsWith('{')) {
-        // Try to parse as Draft.js raw content
-        const contentState = convertFromRaw(JSON.parse(content));
-        return EditorState.createWithContent(contentState);
+      // If it looks like JSON, try to extract plain text
+      if (richContent.startsWith('{')) {
+        const parsed = JSON.parse(richContent);
+        // Look for blocks of content - common in rich text formats
+        if (parsed.blocks && Array.isArray(parsed.blocks)) {
+          return parsed.blocks
+            .map((block: any) => block.text || '')
+            .filter(Boolean)
+            .join('\n');
+        }
+        return richContent;
       }
-      // Otherwise treat as plain text
-      return EditorState.createWithContent(ContentState.createFromText(content));
+      
+      // Just return as plain text
+      return richContent;
     } catch (e) {
       console.log('Error parsing rich text content:', e);
-      // If parsing fails, treat as plain text
-      return EditorState.createWithContent(ContentState.createFromText(content));
+      return richContent;
     }
-  }, [content]);
+  };
+  
+  // Process content to handle special formatting like bold and italics
+  const processContent = (content: string): string => {
+    return content
+      // Replace common markdown-like patterns
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold
+      .replace(/\*(.*?)\*/g, '<em>$1</em>') // Italic
+      .replace(/__(.*?)__/g, '<u>$1</u>') // Underline
+      .replace(/`(.*?)`/g, '<code>$1</code>'); // Code
+  };
+  
+  const plainText = getPlainText(content);
+  const formattedContent = processContent(plainText);
   
   return (
     <div className={`rich-text-view ${className}`}>
-      <Editor
-        editorState={editorState}
-        onChange={() => {}}
-        readOnly={true}
-      />
+      {/* Using dangerouslySetInnerHTML for simple formatting - normally we would use a more robust solution */}
+      <div dangerouslySetInnerHTML={{ __html: formattedContent }} />
     </div>
   );
 };
