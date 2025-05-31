@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Bold, Italic, Underline, Code, Check } from 'lucide-react';
 
 interface RichTextEditorProps {
   content: string;
@@ -13,14 +14,39 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
   onBlur,
   placeholder = 'Enter text...' 
 }) => {
-  const [text, setText] = useState(content || '');
-  
+  // Initialize text from potential Draft.js content
+  const [text, setText] = useState('');
+
+  // Extract plain text from potentially rich content
+  useEffect(() => {
+    if (!content) {
+      setText('');
+      return;
+    }
+
+    try {
+      // If content looks like JSON, try to parse it
+      if (content.startsWith('{')) {
+        const parsed = JSON.parse(content);
+        // Extract text from Draft.js format
+        if (parsed.blocks && Array.isArray(parsed.blocks)) {
+          setText(parsed.blocks.map(block => block.text || '').join('\n'));
+          return;
+        }
+      }
+      // Fallback to just using the content directly
+      setText(content);
+    } catch (e) {
+      console.error('Error parsing content:', e);
+      setText(content);
+    }
+  }, [content]);
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newText = e.target.value;
     setText(newText);
     
-    // Create a simple JSON structure that mimics rich text format
-    // This allows us to be compatible with a future upgrade to a real rich text editor
+    // Create a simple JSON structure that mimics Draft.js format
     const simpleFormat = {
       blocks: [
         {
@@ -204,6 +230,12 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
     }
   };
 
+  const handleDone = () => {
+    if (onBlur) {
+      onBlur();
+    }
+  };
+
   return (
     <div className="rich-text-editor border border-gray-300 rounded-md focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500">
       <div className="toolbar flex space-x-1 border-b border-gray-300 p-1 bg-gray-50 rounded-t-md">
@@ -213,7 +245,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           className="p-1 rounded hover:bg-gray-200"
           aria-label="Bold"
         >
-          Bold
+          <Bold size={16} />
         </button>
         
         <button
@@ -222,7 +254,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           className="p-1 rounded hover:bg-gray-200"
           aria-label="Italic"
         >
-          Italic
+          <Italic size={16} />
         </button>
         
         <button
@@ -231,7 +263,7 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           className="p-1 rounded hover:bg-gray-200"
           aria-label="Underline"
         >
-          Underline
+          <Underline size={16} />
         </button>
         
         <button
@@ -240,11 +272,22 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
           className="p-1 rounded hover:bg-gray-200"
           aria-label="Code"
         >
-          Code
+          <Code size={16} />
+        </button>
+
+        <div className="flex-grow"></div>
+        
+        <button
+          type="button"
+          onClick={handleDone}
+          className="p-1 rounded hover:bg-gray-200 text-green-600"
+          aria-label="Done"
+        >
+          <Check size={16} />
         </button>
       </div>
       
-      <div className="editor-container p-2" onBlur={onBlur}>
+      <div className="editor-container p-2">
         <textarea
           id="rich-editor-textarea"
           value={text}

@@ -12,5 +12,7 @@ interface Window {
     getUpdateRepository: () => Promise<{repoUrl: string, owner: string, repo: string}>;
     checkForUpdates: () => Promise<boolean>;
   };
-  global: any;
+  global: typeof globalThis;
 }
+
+declare module '*.css';

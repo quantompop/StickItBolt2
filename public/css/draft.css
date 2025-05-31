@@ -76,3 +76,23 @@
 .rich-text-view .public-DraftEditor-content {
   pointer-events: none;
 }
+
+/* Rich text view additional styling */
+.rich-text-view code {
+  background-color: #f1f1f1;
+  padding: 0 0.2em;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.rich-text-view strong {
+  font-weight: bold;
+}
+
+.rich-text-view em {
+  font-style: italic;
+}
+
+.rich-text-view u {
+  text-decoration: underline;
+}

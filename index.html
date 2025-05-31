@@ -6,11 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>StickIt Electron App</title>
     <base href="./">
+    <link rel="stylesheet" href="./public/css/draft.css">
     <script>
       // Fix for environments which require the global object
       window.global = window;
       // Fix for common polyfills
       global.process = { env: { NODE_ENV: 'production' } };
+      
+      // Error handling for scripts
+      window.addEventListener('error', function(event) {
+        console.error('Script error caught:', event.error);
+        // Prevent the error from stopping application execution
+        event.preventDefault();
+      });
     </script>
   </head>
   <body>

@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useBoard, ADD_ATTACHMENT, REMOVE_ATTACHMENT } from '../context/BoardContext';
 import { Attachment } from '../types';
+import { Paperclip, Trash2, ExternalLink, X } from 'lucide-react';
 
 interface FileAttachmentsProps {
   noteId: string;
@@ -102,10 +103,12 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
 
   // Handle attachment removal
   const handleRemoveAttachment = (attachmentId: string) => {
-    dispatch({
-      type: REMOVE_ATTACHMENT,
-      payload: { noteId, attachmentId }
-    });
+    if (confirm('Are you sure you want to remove this attachment?')) {
+      dispatch({
+        type: REMOVE_ATTACHMENT,
+        payload: { noteId, attachmentId }
+      });
+    }
   };
 
   // Open attachment in a new tab
@@ -123,8 +126,8 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
               key={attachment.id} 
               className="flex items-center p-2 bg-gray-50 rounded border border-gray-200"
             >
-              <div className="mr-2">
-                📎
+              <div className="mr-2 text-gray-500">
+                <Paperclip size={16} />
               </div>
               <div className="flex-grow truncate">
                 <div className="text-sm font-medium truncate">{attachment.name}</div>
@@ -137,7 +140,7 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
                   aria-label="Open attachment"
                   title="Open"
                 >
-                  🔍
+                  <ExternalLink size={16} />
                 </button>
                 <button
                   className="p-1 text-gray-500 hover:text-red-600 rounded"
@@ -145,7 +148,7 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
                   aria-label="Remove attachment"
                   title="Remove"
                 >
-                  🗑️
+                  <Trash2 size={16} />
                 </button>
               </div>
             </div>
@@ -155,7 +158,15 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
       
       {/* Error message */}
       {error && (
-        <div className="mb-2 text-red-600 text-sm">{error}</div>
+        <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-sm flex justify-between items-center">
+          <span>{error}</span>
+          <button 
+            onClick={() => setError('')}
+            className="text-red-500 hover:text-red-700"
+          >
+            <X size={14} />
+          </button>
+        </div>
       )}
       
       {/* Upload button */}
@@ -173,10 +184,11 @@ const FileAttachments: React.FC<FileAttachmentsProps> = ({ noteId, attachments =
           htmlFor={`file-upload-${noteId}`}
           className={`inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
         >
+          <Paperclip size={16} className="mr-1" />
           {isUploading ? 'Uploading...' : (attachments.length > 0 ? 'Add more files' : 'Attach files')}
         </label>
         <p className="text-xs text-gray-500 mt-1">
-          Max size: {formatFileSize(MAX_FILE_SIZE)} per file
+          Max size: {formatFileSize(MAX_FILE_SIZE)}
         </p>
       </div>
     </div>

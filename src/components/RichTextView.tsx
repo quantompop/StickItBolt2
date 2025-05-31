@@ -27,13 +27,15 @@ const RichTextView: React.FC<RichTextViewProps> = ({ content, className = '' }) 
       // Just return as plain text
       return richContent;
     } catch (e) {
-      console.log('Error parsing rich text content:', e);
+      console.error('Error parsing rich text content:', e);
       return richContent;
     }
   };
   
   // Process content to handle special formatting like bold and italics
   const processContent = (content: string): string => {
+    if (!content) return '';
+    
     return content
       // Replace common markdown-like patterns
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Bold

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { X, Github, RefreshCw, Check } from 'lucide-react';
 
 interface UpdateManagerProps {
   onClose: () => void;
@@ -10,6 +11,7 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
     // Get current repository settings when component mounts
@@ -41,7 +43,7 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
     }
     
     // Validate GitHub URL format
-    const githubUrlPattern = /^https?:\/\/github\.com\/[\w-]+\/[\w-]+(\.git)?$/;
+    const githubUrlPattern = /^https?:\/\/github\.com\/[\w-]+\/[\w.-]+(\/?|\.git)?$/;
     if (!githubUrlPattern.test(repoUrl)) {
       setError('Please enter a valid GitHub repository URL (e.g., https://github.com/username/repo)');
       return;
@@ -52,20 +54,19 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
     try {
       // Use Electron API to save the repository URL for updates
       if (window.electronAPI?.setUpdateRepository) {
-        await window.electronAPI.setUpdateRepository(repoUrl);
+        const result = await window.electronAPI.setUpdateRepository(repoUrl);
         
-        // Try to check for updates immediately
-        if (window.electronAPI?.checkForUpdates) {
-          await window.electronAPI.checkForUpdates();
+        if (result) {
+          // Get the updated repository settings
+          if (window.electronAPI?.getUpdateRepository) {
+            const repo = await window.electronAPI.getUpdateRepository();
+            setCurrentRepo(repo);
+          }
+          
+          setSuccess(true);
+        } else {
+          throw new Error('Failed to set update repository');
         }
-        
-        // Get the updated repository settings
-        if (window.electronAPI?.getUpdateRepository) {
-          const repo = await window.electronAPI.getUpdateRepository();
-          setCurrentRepo(repo);
-        }
-        
-        setSuccess(true);
       } else {
         throw new Error('Update repository feature is not available');
       }
@@ -77,18 +78,38 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
     }
   };
 
+  const checkForUpdates = async () => {
+    if (!window.electronAPI?.checkForUpdates) {
+      setError('Update checking is not available');
+      return;
+    }
+    
+    setIsChecking(true);
+    setError('');
+    
+    try {
+      await window.electronAPI.checkForUpdates();
+    } catch (err: any) {
+      console.error('Error checking for updates:', err);
+      setError(err.message || 'Failed to check for updates');
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
   return (
     <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
-          <h2 className="text-2xl font-bold text-gray-800">Update Source</h2>
+          <Github size={24} className="text-gray-700 mr-2" />
+          <h2 className="text-2xl font-bold text-gray-800">Update Settings</h2>
         </div>
         <button
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600"
           aria-label="Close"
         >
-          X
+          <X size={20} />
         </button>
       </div>
       
@@ -107,9 +128,10 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
       )}
       
       {success && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-start">
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md flex items-center">
+          <Check size={16} className="text-green-600 mr-2" />
           <span className="text-green-700 text-sm">
-            Update repository set successfully! The app will now check for updates from this repository.
+            Update repository set successfully!
           </span>
         </div>
       )}
@@ -158,21 +180,23 @@ const UpdateManager: React.FC<UpdateManagerProps> = ({ onClose }) => {
       <div className="mt-6 pt-6 border-t border-gray-200">
         <button
           type="button"
-          className="w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md flex items-center justify-center"
-          onClick={async () => {
-            if (window.electronAPI?.checkForUpdates) {
-              setIsLoading(true);
-              try {
-                await window.electronAPI.checkForUpdates();
-              } catch (err) {
-                console.error('Error checking for updates:', err);
-              } finally {
-                setIsLoading(false);
-              }
-            }
-          }}
+          className={`w-full py-2 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-md flex items-center justify-center ${
+            isChecking ? 'opacity-70 cursor-not-allowed' : ''
+          }`}
+          onClick={checkForUpdates}
+          disabled={isChecking}
         >
-          Check for Updates Now
+          {isChecking ? (
+            <>
+              <RefreshCw size={16} className="mr-2 animate-spin" />
+              Checking...
+            </>
+          ) : (
+            <>
+              <RefreshCw size={16} className="mr-2" />
+              Check for Updates Now
+            </>
+          )}
         </button>
       </div>
     </div>

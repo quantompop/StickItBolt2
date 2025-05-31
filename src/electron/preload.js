@@ -40,7 +40,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   
   installUpdate: () => ipcRenderer.send('install-update'),
-
+  
   // New functions for managing update repository
   setUpdateRepository: (repoUrl) => ipcRenderer.invoke('set-update-repository', repoUrl),
   getUpdateRepository: () => ipcRenderer.invoke('get-update-repository'),
