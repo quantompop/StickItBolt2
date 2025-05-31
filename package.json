@@ -31,7 +31,7 @@
     "build:linux": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs --linux",
     "build:all": "rimraf dist-electron && tsc && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build --mode production && node ./scripts/prepare-electron.js && electron-builder --config electron-builder-config.cjs -mwl",
     "clean": "rimraf dist dist-electron",
-    "prepare-dirs": "mkdir -p public/css"
+    "prepare-dirs": "mkdir -p public/css dist/public/css"
   },
   "dependencies": {
     "draft-js": "^0.11.7",
