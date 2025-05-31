@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Note as NoteType, NoteColor } from '../types';
-import { X, MoreVertical, Plus, Trash, Edit, Palette, Type, AlignJustify, Search, PaperClip } from 'lucide-react';
+import { X, MoreVertical, Plus, Trash, Edit, Palette, Type, AlignJustify, Search, Paperclip as PaperClip } from 'lucide-react';
 import Task from './Task';
 import ColorPicker from './ColorPicker';
 import SliderControl from './SliderControl';

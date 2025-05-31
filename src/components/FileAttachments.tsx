@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { PaperClip, File, X, Download, Trash, Upload } from 'lucide-react';
+import { Paperclip as PaperClip, File, X, Download, Trash, Upload } from 'lucide-react';
 import { Attachment } from '../types';
 import { useBoard, ADD_ATTACHMENT, REMOVE_ATTACHMENT } from '../context/BoardContext';
 
