@@ -38,7 +38,9 @@
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "conf": "^12.0.0",
+    "electron-store": "^8.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
@@ -94,6 +96,12 @@
     "extraMetadata": {
       "main": "dist-electron/main.js"
     },
+    "extraResources": [
+      {
+        "from": "node_modules/electron-store",
+        "to": "node_modules/electron-store"
+      }
+    ],
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "dist/icons/icon.icns",
