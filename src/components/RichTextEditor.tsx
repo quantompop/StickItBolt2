@@ -19,32 +19,34 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   // Initialize editor state from content prop or empty state
   const [editorState, setEditorState] = useState(() => {
-    if (content) {
-      try {
+    try {
+      if (content && content.startsWith('{')) {
         // Try to parse the content as raw Draft.js content
         const contentState = convertFromRaw(JSON.parse(content));
         return EditorState.createWithContent(contentState);
-      } catch (e) {
-        // If parsing fails, create with plain text
-        return EditorState.createWithContent(
-          ContentState.createFromText(content)
-        );
+      } else {
+        // Create with plain text
+        return EditorState.createWithContent(ContentState.createFromText(content || ''));
       }
+    } catch (e) {
+      console.log('Error parsing editor content:', e);
+      // Fallback to plain text
+      return EditorState.createWithContent(ContentState.createFromText(content || ''));
     }
-    return EditorState.createEmpty();
   });
 
   // Update editor state when content prop changes
   useEffect(() => {
     if (content && !editorState.getCurrentContent().getPlainText()) {
       try {
-        const contentState = convertFromRaw(JSON.parse(content));
-        setEditorState(EditorState.createWithContent(contentState));
+        if (content.startsWith('{')) {
+          const contentState = convertFromRaw(JSON.parse(content));
+          setEditorState(EditorState.createWithContent(contentState));
+        } else {
+          setEditorState(EditorState.createWithContent(ContentState.createFromText(content)));
+        }
       } catch (e) {
-        // If parsing fails, create with plain text
-        setEditorState(
-          EditorState.createWithContent(ContentState.createFromText(content))
-        );
+        console.log('Error updating editor content:', e);
       }
     }
   }, [content]);

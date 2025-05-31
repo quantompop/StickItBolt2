@@ -6,14 +6,14 @@ import { resolve } from 'path';
 export default defineConfig(({ mode }) => ({
   plugins: [react()],
   define: {
+    // Required for Draft.js
     'process.env': {
       NODE_ENV: mode === 'production' ? JSON.stringify('production') : JSON.stringify('development'),
     },
     global: 'window',
   },
   optimizeDeps: {
-    include: ['draft-js', 'react-draft-wysiwyg'],
-    exclude: ['lucide-react'],
+    include: ['draft-js', 'immutable'],
     esbuildOptions: {
       target: 'es2020',
     }
@@ -22,7 +22,6 @@ export default defineConfig(({ mode }) => ({
     alias: {
       // Fix Draft.js imports
       'draft-js': resolve(__dirname, 'node_modules/draft-js'),
-      'react-draft-wysiwyg': resolve(__dirname, 'node_modules/react-draft-wysiwyg'),
       'immutable': resolve(__dirname, 'node_modules/immutable'),
     }
   },
@@ -30,16 +29,14 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     emptyOutDir: true,
     target: 'es2020',
-    sourcemap: false, // Disable sourcemaps in production to reduce build size
+    sourcemap: mode !== 'production', // Disable sourcemaps in production
     chunkSizeWarningLimit: 1000, // Increase warning limit
-    cssCodeSplit: false, // Keep CSS in one file to avoid duplication
+    cssCodeSplit: false, // Keep CSS in one file
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
       },
-      external: [],
       output: {
-        // Optimize chunks to reduce the number of generated files
         manualChunks: (id) => {
           // Group all lucide-react icons into a single chunk
           if (id.includes('node_modules/lucide-react')) {
@@ -53,9 +50,8 @@ export default defineConfig(({ mode }) => ({
           if (id.includes('node_modules/firebase')) {
             return 'vendor-firebase';
           }
-          // Group draft-js related packages - explicit to solve resolution issue
+          // Group draft-js related packages
           if (id.includes('node_modules/draft-js') || 
-              id.includes('node_modules/react-draft-wysiwyg') ||
               id.includes('node_modules/immutable')) {
             return 'vendor-draft-js';
           }
@@ -69,7 +65,7 @@ export default defineConfig(({ mode }) => ({
         entryFileNames: 'assets/[name].[hash].js'
       }
     },
-    assetsInlineLimit: 4096, // Inline small assets (4kb or less)
+    assetsInlineLimit: 4096, // Inline small assets
     minify: 'terser', // Use terser for better minification
     terserOptions: {
       compress: {
@@ -78,7 +74,7 @@ export default defineConfig(({ mode }) => ({
       }
     }
   },
-  base: './', // Use relative paths - crucial for Electron to find assets
+  base: './', // Use relative paths for Electron
   server: {
     port: 5173,
     host: true,
