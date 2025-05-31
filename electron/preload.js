@@ -30,7 +30,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onUpdateDownloaded: (callback) => {
     const subscription = () => callback();
     ipcRenderer.on('update-downloaded', subscription);
-    return () => ipcListener.removeListener('update-downloaded', subscription);
+    return () => ipcRenderer.removeListener('update-downloaded', subscription);
   },
   
   onDownloadProgress: (callback) => {
