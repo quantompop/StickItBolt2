@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash, Download, Archive, Search, X, History, Undo, Database, LogOut, Key } from 'lucide-react';
+import { Plus, Trash, Download, Archive, Search, X, History, Undo, Database, LogOut, Key, Github, RefreshCw } from 'lucide-react';
 import Note from './Note';
 import ArchivedTasksList from './ArchivedTasksList';
 import VersionHistory from './VersionHistory';
@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { signOut } from '../firebase/authService';
 import { NoteColor } from '../types';
 import AuthModal from './Auth/AuthModal';
+import UpdateManager from './UpdateManager';
 
 const Board: React.FC = () => {
   const { state, dispatch } = useBoard();
@@ -22,6 +23,7 @@ const Board: React.FC = () => {
   const [showGlobalSearch, setShowGlobalSearch] = useState(false);
   const [isCreatingBackup, setIsCreatingBackup] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showUpdateManager, setShowUpdateManager] = useState(false);
   
   // Initialize the state to ensure it has expected properties
   useEffect(() => {
@@ -187,6 +189,16 @@ const Board: React.FC = () => {
       setIsCreatingBackup(false);
     }
   };
+
+  // Open change password modal
+  const handleChangePassword = () => {
+    setShowPasswordModal(true);
+  };
+
+  // Open update manager
+  const handleOpenUpdateManager = () => {
+    setShowUpdateManager(true);
+  };
   
   // Handle signing out
   const handleSignOut = async () => {
@@ -198,11 +210,6 @@ const Board: React.FC = () => {
         alert("Failed to sign out. Please try again.");
       }
     }
-  };
-
-  // Open change password modal
-  const handleChangePassword = () => {
-    setShowPasswordModal(true);
   };
   
   // Handle task drop directly on the board background
@@ -267,7 +274,7 @@ const Board: React.FC = () => {
       onDragOver={handleDragOver}
     >
       {/* Board Toolbar */}
-      <div className="absolute top-0 left-0 right-0 bg-white shadow-sm z-10 p-3 flex items-center">
+      <div className="absolute top-0 left-0 right-0 bg-white shadow-sm z-10 p-3 flex items-center toolbar-container">
         <div className="flex-grow flex items-center">
           <h1 className="text-xl font-semibold text-gray-800">StickIt Board</h1>
           
@@ -281,10 +288,10 @@ const Board: React.FC = () => {
           )}
         </div>
         
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 flex-wrap">
           <div className="relative">
             <button
-              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded flex items-center transition-colors"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
               onClick={() => setShowColorPicker(!showColorPicker)}
               aria-label="Add a new note"
             >
@@ -331,7 +338,7 @@ const Board: React.FC = () => {
               showArchive 
                 ? 'bg-blue-100 text-blue-600' 
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            } px-3 py-1.5 rounded flex items-center transition-colors`}
+            } px-3 py-1.5 rounded flex items-center transition-colors toolbar-button`}
             onClick={toggleArchive}
             aria-label="Show archived tasks"
           >
@@ -349,7 +356,7 @@ const Board: React.FC = () => {
               showGlobalSearch || state.search?.isActive
                 ? 'bg-blue-100 text-blue-600' 
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            } px-3 py-1.5 rounded flex items-center transition-colors`}
+            } px-3 py-1.5 rounded flex items-center transition-colors toolbar-button`}
             onClick={toggleGlobalSearch}
             aria-label="Search tasks and notes"
           >
@@ -362,7 +369,7 @@ const Board: React.FC = () => {
               showVersionHistory 
                 ? 'bg-blue-100 text-blue-600' 
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            } px-3 py-1.5 rounded flex items-center transition-colors`}
+            } px-3 py-1.5 rounded flex items-center transition-colors toolbar-button`}
             onClick={toggleVersionHistory}
             aria-label="View version history"
           >
@@ -380,7 +387,7 @@ const Board: React.FC = () => {
               showBackups 
                 ? 'bg-blue-100 text-blue-600' 
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            } px-3 py-1.5 rounded flex items-center transition-colors`}
+            } px-3 py-1.5 rounded flex items-center transition-colors toolbar-button`}
             onClick={toggleBackups}
             aria-label="Manage backups"
           >
@@ -389,7 +396,7 @@ const Board: React.FC = () => {
           </button>
           
           <button 
-            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded flex items-center transition-colors"
+            className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
             onClick={handleUndo}
             title="Undo last action"
             aria-label="Undo last action"
@@ -405,7 +412,7 @@ const Board: React.FC = () => {
           
           <div className="relative">
             <button 
-              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded flex items-center transition-colors"
+              className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
               onClick={createVersionSnapshot}
               aria-label="Save current version"
             >
@@ -416,7 +423,7 @@ const Board: React.FC = () => {
           
           <div className="relative">
             <button 
-              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded flex items-center transition-colors"
+              className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
               onClick={handleCreateBackup}
               disabled={isCreatingBackup || !authState.isAuthenticated}
               aria-label="Create a backup"
@@ -425,13 +432,23 @@ const Board: React.FC = () => {
               <span className="ml-1">{isCreatingBackup ? 'Saving...' : 'Create Backup'}</span>
             </button>
           </div>
+
+          {/* Update Manager Button - new button for update repository */}
+          <button 
+            className="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
+            onClick={handleOpenUpdateManager}
+            aria-label="Set update repository"
+          >
+            <Github size={18} />
+            <span className="ml-1">Updates</span>
+          </button>
           
           {/* User Account Actions */}
           {authState.isAuthenticated && (
             <>
               {/* Change Password Button */}
               <button 
-                className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded flex items-center transition-colors"
+                className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
                 onClick={handleChangePassword}
                 aria-label="Change password"
               >
@@ -441,7 +458,7 @@ const Board: React.FC = () => {
               
               {/* Log Out Button */}
               <button 
-                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded flex items-center transition-colors"
+                className="bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded flex items-center transition-colors toolbar-button"
                 onClick={handleSignOut}
                 aria-label="Sign out of your account"
               >
@@ -629,6 +646,15 @@ const Board: React.FC = () => {
         onClose={() => setShowPasswordModal(false)}
         initialMode="password" 
       />
+
+      {/* Update Manager Modal */}
+      {showUpdateManager && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" role="dialog" aria-modal="true">
+          <div className="relative">
+            <UpdateManager onClose={() => setShowUpdateManager(false)} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
